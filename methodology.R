@@ -424,3 +424,32 @@ lines(var.imp.latino, type = "o", col = "orange", lwd=2)
 lines(var.imp.african, type = "o", col = "green", lwd=2)
 lines(var.imp.others, type = "o", col = "brown", lwd=2)
 legend("topright",c("Asian/Pacific Islander/Asian-American", "European/Caucasian-American", "Latino/Hispanic American", "Black/African American", "Other"),lty=c(1,1,1,1,1),lwd=c(2,2,2,2,2),col=c("red","blue","orange","green","brown"))
+
+###################################################
+####### Fifth job - Age differences ##############
+###################################################
+
+speed_dating_5 = speed_dating[,c(2,34:39,64)]
+
+age_18_22 = subset(speed_dating_5, age>=18 & age<=22)[,-1]
+age_23_27 = subset(speed_dating_5, age>= 23 & age<=27)[,-1]
+age_28_32 = subset(speed_dating_5, age>=28 & age<=32)[,-1]
+age_33_56 = subset(speed_dating_5, age>=33 & age<=56)[,-1]
+
+rf.18.22 = randomForest(data=age_18_22, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.23.27 = randomForest(data=age_23_27, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.28.32 = randomForest(data=age_28_32, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.33.56 = randomForest(data=age_33_56, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+
+var.imp.18.22 = rf.18.22$importance[,3]
+var.imp.23.27 = rf.23.27$importance[,3]
+var.imp.28.32 = rf.28.32$importance[,3]
+var.imp.33.56 = rf.33.56$importance[,3]
+
+plot(var.imp.18.22, xaxt="n",type = "o",col = "red", xlab = "Attributes", ylab = "Mean Decrease in Accuracy", 
+     main = "Differences in predictive importance of various attributes", ylim=c(0,0.12), lwd=2)
+axis(1, at = c(1:6), labels=c("attractive","sincere","intelligence","funny","abmitious","shared interest")) 
+lines(var.imp.23.27, type = "o", col = "blue", lwd=2)
+lines(var.imp.28.32, type = "o", col = "orange", lwd=2)
+lines(var.imp.33.56, type = "o", col = "green", lwd=2)
+legend("topright",c("Age 18-22","Age 23-27","Age 28-32", "Age 33-56"),lty=c(1,1,1,1),lwd=c(2,2,2,2),col=c("red","blue","orange","green"))
