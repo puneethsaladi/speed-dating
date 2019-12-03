@@ -106,3 +106,17 @@ An advantage of naive Bayes is that it only requires a small number of training 
 4. Differences by race - graph
 5. Differences by age group - graph
 
+## Future work
+
+In our conclusions, we state that we could more accurately predict a match than an individual decision. This is counter-intuitive and can be furthere studied to determine the reason for this. The dataset contains a lot of features and a lot more analysis can b performed. One such thing can be to see the differences in factors that influence partner selection for people from various fields of work. Another interesting future work may include finding inherent clusters among the people on basis of various features available. 
+
+The best accuracy we could acheive for predicting a match was less than 90%. This may signify that the data quality can be much better and many more featres could have been included in the dataset. Some of our suggestions are - imporatance of race for partner, religion, and interest ratings of partner, would the person want someone from their own field of work. Some other concerns we had with the data was the missing data. It is inevitable that we have missing data when collected from real world, but imputing the data generates some bias.
+
+
+## Literature
+
+Two reseach papers have been published which specifically analyses the speed dating dataset.
+
+The first paper titled "Gender Differences in Mate Selection: Evidence From a Speed Dating Experiment" studies the differences in various factors that influences men and women to choose a partner. They find that women put greater weight on the intelligence and the race of partner, while men respond more to physical attractiveness. Moreover, men do not value women’s intelligence or ambition when it exceeds their own. Also, they find that women exhibit a preference for men who grew up in affluent neighborhoods. Male selectivity is invariant to group size, while female selectivity is strongly increasing in group size.
+
+"Racial Preferences in Dating: Evidence from a Speed Dating Experiment" reseach paper studies the the differences in various factors that influences people of various racial backgrounds to choose a partner. Teir findings state that females exhibit stronger racial preferences than males. Furthermore, they observe stronger same race preferences for blacks and Asians than for Hispanics and whites. Accounting for self-reported shared interests considerably reduces the observed effect of racial preferences.
