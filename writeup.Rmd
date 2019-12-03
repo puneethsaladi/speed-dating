@@ -1,0 +1,70 @@
+---
+title: "Speed Dating"
+author: "Puneeth Saladi"
+date: "03/12/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preprocessing
+
+As the dataset had a lot duplicate fields and missing data, some amount of preprocessing was required to be performed. We performed data cleaning, data transformation, and data reduction as part of preprocessing. Firstly, the dataset had a number of features which were basically bucketed categorical varibales of other present features. 
+
+This list includes - d_d_age, d_importance_same_race, d_importance_same_religion, d_pref_o_attractive, d_pref_o_sincere, d_pref_o_intelligence, d_pref_o_funny, d_pref_o_ambitious, d_pref_o_shared_interests, d_attractive_o, d_sincere_o, d_intelligence_o, d_funny_o, d_ambitious_o, d_shared_interests_o, d_attractive_important, d_sincere_important, d_intelligence_important, d_funny_important, d_ambitious_important, d_shared_interests_important, d_attractive, d_sincere, d_intelligence, d_funny, d_ambitious, d_shared_interests, d_attractive_partner, d_sincere_partner, d_intelligence_partner, d_funny_partner, d_ambitious_partner, d_shared_interests_partner, d_sports, d_tvsports, d_exercise, d_dining, d_museums, d_art, d_hiking, d_gaming, d_clubbing, d_reading, d_tv, d_theater, d_movies, d_concerts, d_music, d_shopping, d_yoga, d_interests_correlate, d_expected_happy_with_sd_people, d_expected_num_interested_in_me, d_expected_num_matches, d_like, and d_guess_prob_liked.
+
+All of these fields were removed. Along with this two more fields - has_null and wave, which represented if the observation has a null value and the round of speed dating respectively were also removed. After this, all the fields were convertedd to to either numeric or factor as required. Although many of the machine learning models require the predictors to be all numeric, this task was left to be done during the time of model creation.
+
+Next we had to deal with missing values for both numeric type and categorical type. Rather then using some existing library, which handles the imputation, we dicided to fill in the missing values mannually with mean and mode for numeric and categorical variables. After the missing values are filled, we crosscheck if any more missing values exist.
+
+## Methodlogy
+
+### Random Forests
+
+A Random Forest consists of a collection or ensemble of simple tree predictors, each capable of producing a response when presented with a set of predictor values. For classification problems, this response takes the form of a class membership, which associates, or classifies, a set of independent predictor values with one of the categories present in the dependent variable. Alternatively, for regression problems, the tree response is an estimate of the dependent variable given the predictors. The Random Forest algorithm was developed by Breiman.
+
+A Random Forest consists of an arbitrary number of simple trees, which are used to determine the final outcome.  For classification problems, the ensemble of simple trees vote for the most popular class. In the regression problem, their responses are averaged to obtain an estimate of the dependent variable. Using tree ensembles can lead to significant improvement in prediction accuracy.
+
+### Neural Networks
+
+Neural networks have seen an explosion of interest over the last few years, and are being successfully applied across an extraordinary range of problem domains, in areas as diverse as finance, medicine, engineering, geology and physics. Indeed, anywhere that there are problems of prediction, classification or control, neural networks are being introduced. Neural networks are also intuitively appealing, based as they are on a crude low-level model of biological neural systems.
+
+Neural networks are very sophisticated modeling techniques capable of modeling extremely complex functions. In particular, neural networks are nonlinear (a term which is discussed in more detail later in this section). For many years linear modeling has been the commonly used technique in most modeling domains since linear models have well-known optimization strategies. Where the linear approximation was not valid (which was frequently the case) the models suffered accordingly. Neural networks also keep in check the curse of dimensionality problem that bedevils attempts to model nonlinear functions with large numbers of variables.
+
+Neural networks learn by example. The neural network user gathers representative data, and then invokes training algorithms to automatically learn the structure of the data. Although the user does need to have some heuristic knowledge of how to select and prepare data, how to select an appropriate neural network, and how to interpret the results, the level of user knowledge needed to successfully apply neural networks is much lower than would be the case using (for example) some more traditional nonlinear statistical methods.
+
+### KNN
+
+In pattern recognition, the k-nearest neighbors algorithm (k-NN) is a non-parametric method used for classification and regression.[1] In both cases, the input consists of the k closest training examples in the feature space. The output depends on whether k-NN is used for classification or regression.
+
+In k-NN classification, the output is a class membership. An object is classified by a plurality vote of its neighbors, with the object being assigned to the class most common among its k nearest neighbors (k is a positive integer, typically small). If k = 1, then the object is simply assigned to the class of that single nearest neighbor.
+
+In k-NN regression, the output is the property value for the object. This value is the average of the values of k nearest neighbors.
+k-NN is a type of instance-based learning, or lazy learning, where the function is only approximated locally and all computation is deferred until classification.
+
+Both for classification and regression, a useful technique can be to assign weights to the contributions of the neighbors, so that the nearer neighbors contribute more to the average than the more distant ones. For example, a common weighting scheme consists in giving each neighbor a weight of 1/d, where d is the distance to the neighbor.[2]
+
+The neighbors are taken from a set of objects for which the class (for k-NN classification) or the object property value (for k-NN regression) is known. This can be thought of as the training set for the algorithm, though no explicit training step is required.
+
+A peculiarity of the k-NN algorithm is that it is sensitive to the local structure of the data.
+
+### SVM
+
+### XGBOOST
+
+### LOgistic Regression
+
+### QDA
+
+### Naive Bayes
+
+## Conclusions
+
+1. It is harder to correctly predict (lower accuracy) individual decisions than a match. Counter Intuitive.
+2. Order of variables which contribute to the desicion/match and hence what is important - graphs
+3. Differences by gender - graph
+4. Differences by race - graph
+5. Differences by age group - graph
+
