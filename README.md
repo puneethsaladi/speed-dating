@@ -3,8 +3,7 @@ Final project for STAT 845 - Classification at University of Waterloo
 
 ## Steps to run R code
 
-* Download the dataset (<i>speeddating.csv</i> file) from https://www.openml.org/data/get_csv/13153954/speeddating.arff.
-* We have the whole code as a single file - <i>code.Rmd</i>. Open <i>code.Rmd</i> and update the path to the dataset file <i>speeddating.csv</i>.
+* We have the whole code as a single file - <i>code.Rmd</i>. Open <i>code.Rmd</i> and update the path to the dataset file <i>speeddating.csv</i> by changing the path variable at line #295 of the code.Rmd file.
 * Make sure you have all the below mentioned packages installed
   * fmsb
   * dplyr
