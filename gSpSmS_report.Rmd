@@ -10,7 +10,7 @@ output:
 \vskip 1cm
 \fontsize{24}{25}\selectfont \bf{DON'T DRINK AND DATE}
 \vskip 0.2cm
-\textnormal{{\fontsize{14}{16}\selectfont A Study in Speed Dating}}
+\textnormal{{\fontsize{14}{16}\selectfont A Study on Speed Dating}}
 \vskip 1cm
 \includegraphics[width=10cm]{images/logo.jpg}
 \vskip 1cm
@@ -292,8 +292,7 @@ Next we had to deal with missing values for both numeric and categorical type. R
 ```{r, include = FALSE}
 #here comes the preprocessing details
 set.seed(67982193)
-#path <- "/home/dnivog/PaaniLoo/STAT 841/Project/speed-dating/speeddating.csv"
-path <- "H:\\Stat 841\\speed-dating\\data\\speeddating.csv"
+path <- "H:\\Stat 841\\speed-dating\\speeddating.csv"
 ## Read the data as character data frame
 speed_dating <- read.csv(path, colClasses=c(rep("character",123)), na.string = "?")
 
@@ -1840,6 +1839,8 @@ lines(var.imp.female, type = "o", col = "blue", lwd=2)
 legend("topright",c("Male", "Female"),lty=c(1,1),lwd=c(2,2),col=c("red","blue"))
 ```
 
+\begin{center}\includegraphics[width=12cm]{images/gender_diff.png}\end{center}
+
 As we can see from the plot, male participants give more importance to attractiveness than their female counterparts. While attractiveness and being funny are the two most desirable categories as per the predictive analysis, itelligence, sincerity and ambition are least desirable for both genders.
 
 ## Ethnic Differences
@@ -1941,8 +1942,8 @@ Again, in case of different age groups as well, it is attractiveness that seems 
 
 Based on the questions we listed out in the beginning of this report, here are our conclusions:
 
-1. Given a set of attributes pertaining to potential partners, we are able to predict whether the two people are ready to date each other with XX% accuracy using ABC method.
-2. Based on a person’s own preferences, and the attributes of the potential partner, we are able to predict whether the person will be interested in the opposite person using XYZ methods. The accuracy of these predictions is lower.
+1. Given a set of attributes pertaining to potential partners, we are able to predict whether the two people are ready to date each other with **86% accuracy** using **Random Forests** method.
+2. Based on a person’s own preferences, and the attributes of the potential partner, we are able to predict whether the person will be interested in the opposite person using **XGBoost** and **KNN** methods. The accuracy of these predictions is lower (**76-79%**).
 3. Predictive analysis reveals that the most desirable attributes for both Men and Women are attractiveness and funny. Men also give more importance to attractiveness than women. The importance of all other qualities for men and women is similar. 
 4. Looking at the preferences across participants from different racial groups, predictive analysis reveals that Black and White participants give more weightage to attractiveness than other groups. Latino and Asian participants tend to give more importance than other groups to their partner being funny.
 5. People in different age groups still show similar trends in terms of their preferred qualities as per the predictive analysis. Younger people tend to show more importance for attractiveness and shared interests, whereas people who are older tend to give more importance to than young people to their partner being funny.
