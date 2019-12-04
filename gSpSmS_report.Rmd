@@ -1,0 +1,1995 @@
+---
+header-includes:
+  - \usepackage{longtable}
+output:
+  pdf_document: default
+---
+
+\begin{center}
+\textnormal{{\fontsize{14}{16}\selectfont University of Waterloo}}
+\vskip 1cm
+\fontsize{24}{25}\selectfont \bf{DON'T DRINK AND DATE}
+\vskip 0.2cm
+\textnormal{{\fontsize{14}{16}\selectfont A Study in Speed Dating}}
+\vskip 1cm
+\includegraphics[width=10cm]{images/logo.jpg}
+\vskip 1cm
+\textnormal{{\fontsize{12}{14}\selectfont Final Project Report}}
+\vskip 0.2cm
+\textnormal{{\fontsize{10}{12}\selectfont For}}
+\vskip 0.2cm
+\textnormal{{\fontsize{14}{16}\selectfont \textbf{STAT 841 Statistical Learning: Classification (Fall 2019)}}}
+\vskip 1cm
+\textnormal{{\fontsize{14}{16}\selectfont Submitted By}}
+\vskip 1cm
+\fontsize{24}{25}\selectfont Team: \bf{gSpSmS}
+\vskip 1cm
+\fontsize{14}{16}\selectfont \bf{Govind Sharma  (20817244)}
+\vskip 0.2cm
+\fontsize{14}{16}\selectfont \bf{Puneeth Srinivas Mohan Saladi (20835628)}
+
+\end{center}
+
+\newpage
+\tableofcontents
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning =FALSE) 
+library(fmsb)
+library(dplyr)
+library(plyr)
+library(tibble)
+library(stringr)
+library(ggplot2)
+library(grid)
+library(gridBase)
+library(scales)
+library(ggplot2)
+library(gridExtra)
+library(grid)
+library(reshape2)
+library(glmnet)
+library(MASS)
+library(klaR)
+library(randomForest)
+library(e1071)
+library(nnet)
+library(xgboost)
+library(sm)
+library(FNN)
+```
+
+\newpage
+# Motivation
+
+## Introduction
+
+The whole world is moving at a brisk pace with so much competition, responsibilities and distractions. This trend has been prevalent ever since the introduction of capitalism and it will only continue to grow in the future. As such, people have to make compromises on their personal lives, take away from their social circles and be more and more consumed in this never ending race.
+
+In such an environment, the process of seeking a partner for a romantic relationship is even more daunting a task than it already was. People are often finding it hard to make time for this very important aspect of life. But as is the case with many other situations, with new problems come new solutions. And that is why we continue to see a surge in various means of facilitating the "dating process". Be it online portals or mobile applications, there always seems to be the "next new thing" in the dating industry.
+
+We are going to focus on one such relatively old but still very popular form of organized romance: speed dating. Speed dating is a formalized matchmaking process which has the purpose of encouraging eligible singles to meet large numbers of new potential partners in a very short period of time. These types of arrangements are particularly popular in western societies where polygamous relationships are a common practice.
+
+Speed dating is useful not only because it creates an environment conducive for people to find multiple partners in a very short period of time but it is also interesting from a scientific point of view. Speed dating can be viewed as an experiment in human interaction and data collected from this experiment can be analyzed in a variety of ways to conclude many useful things, patterns and behaviours that govern the fundamentals of partner selection in humans.
+
+
+## Problem Statements
+
+Using a dataset (described in subsequent sections) and after applying various tools for analysis, visualization and prediction, we would like to have some insights regarding the following questions:
+
+1. Given a set of attributes pertaining to potential partners, can we accurately predict whether two people will be ready to date each other?
+2. Based on a person's own preferences, and the attributes of the potential partner, will the person be interested in the opposite person?
+3. For each gender (male & female), which attributes are most desirable in their respective partners?
+4. For people of different races, are there some qualities that outshine others when it comes to choosing a partner?
+5. How does a person's preferences change with age?
+
+
+\newpage
+# Data
+
+## Description
+
+We will be using data which was collected from a project named "**Speed Dating Experiment**".\cite{openml} This experiment was conducted by **Professor Ray Fisman** and **Professor Sheena Iyengar** from Columbia Business School. They introduced this data set originally as part of their paper, "**Gender Differences in Mate Selection: Evidence From a Speed Dating Experiment.**"\cite{paper1} As described in the paper, this data was gathered from people who volunteered for a speed dating event that spanned from the time period of 2002-2004.
+
+Here is how the experiment was conducted:
+
+In the event, the participants were given a chance to have 4 minutes of "first interaction" with all other potential partners. After every such interaction, each participant will rate the person they just met based on various attributes. Together with rating each person gives for various attributes, the participants will also write down a final verdict on whether or not they will be willing to go on a second "formal" date. The attributes on which each person is rated by their partner are, "**attractiveness**", "**sincerity**", "**intelligence**", "**fun**", "**ambition**" and "**shared interests**". Another thing to note here is that each person has also rated themselves on all of these attributes before meeting anyone else. So the database contains data from both perspectives.
+
+The data set also includes data on various preferences a person has for their potential partners. For example, how important is it for a person that their partner be of the same race, etc. This along with all other attributes in the dataset are summarized below:
+
+\begin{center}
+\begin{longtable}{|c|c| } 
+ \hline
+ \textbf{Attribute} & \textbf{Description}\\
+ \hline
+ gender & Gender of self\\
+\hline
+ age & Age of self \\
+\hline
+ age\_o & Age of partner \\
+\hline
+ d\_age & Difference in age \\
+\hline
+ race & Race of self \\
+\hline
+ race\_o & Race of partner \\
+\hline
+ samerace & Whether the two people have the same race \\
+\hline
+ importance\_same\_race & How important is it for a person to have the partner be of the same race \\
+\hline
+ importance\_same\_religion & How important is it for a person to have the partner be of the same religion  \\
+\hline
+ field & person's field of work/study \\
+\hline
+ pref\_o\_attractiveness & How important does partner rate attractiveness \\
+\hline
+ pref\_o\_sincere & How important does partner rate sincerity \\
+\hline
+ pref\_o\_intelligence & How important does partner rate intelligence \\
+\hline
+ pref\_o\_funny &  How important does partner rate being funny \\
+\hline
+ pref\_o\_ambitious & How important does partner rate ambition \\
+\hline
+ pref\_o\_shared\_interests &  How important does partner rate having shared interests \\
+\hline
+ attractive\_o & Rating by partner at night of event on attractiveness \\
+\hline
+ sincere\_o & Rating by partner at night of event on sincerity \\
+\hline
+ intelligence\_o &  Rating by partner at night of event on intelligence \\
+\hline
+ funny\_o & Rating by partner at night of event on being funny \\
+\hline
+ ambitious\_o &  Rating by partner at night of event on being ambitious \\
+\hline
+ shared\_interests\_o & Rating by partner (about me) at night of event on shared interest \\
+\hline
+ attractive\_important & What do you look for in a partner - attractiveness \\
+\hline
+ sincere\_important & What do you look for in a partner - sincerity \\
+\hline
+ intelligence\_important & What do you look for in a partner - intelligence \\
+\hline
+ funny\_important & What do you look for in a partner - being funny \\
+\hline
+ ambitious\_important & What do you look for in a partner - ambition \\
+\hline
+ shared\_important\_important & What do you look for in a partner - shared interests \\
+\hline
+ attractive & Rate yourself - attractiveness \\
+\hline
+ sincere & Rate yourself - sincerity \\
+\hline
+ intelligence & Rate yourself - intelligence \\
+\hline
+ funny & Rate yourself - being funny \\
+\hline
+ ambition & Rate yourself - ambition \\
+\hline
+ attractive\_partner & Rate your partner - attractiveness \\
+ \hline
+ sincerity\_partner & Rate your partner - sincerity \\
+\hline
+ intelligence\_partner & Rate your partner - intelligence \\
+\hline
+ funny\_partner & Rate your partner - being funny \\
+\hline
+ ambition\_partner & Rate your partner - ambition \\
+\hline
+ sports & Your own interests [1-10] \\
+\hline
+ tvsports & Your own interests [1-10] \\
+\hline
+ exercise & Your own interests [1-10] \\
+\hline
+ dining & Your own interests [1-10] \\
+\hline
+ museums & Your own interests [1-10] \\
+\hline
+ art & Your own interests [1-10] \\
+\hline
+ hiking & Your own interests [1-10] \\
+\hline
+ gaming & Your own interests [1-10] \\
+\hline
+ clubbing & Your own interests [1-10] \\
+\hline
+ reading & Your own interests [1-10] \\
+\hline
+ tv & Your own interests [1-10] \\
+\hline
+ theater & Your own interests [1-10] \\
+\hline
+ movies & Your own interests [1-10] \\
+\hline
+ concerts & Your own interests [1-10] \\
+\hline
+ music & Your own interests [1-10] \\
+\hline
+ shopping & Your own interests [1-10] \\
+\hline
+ yoga & Your own interests [1-10] \\
+\hline
+ interests\_correlate & Correlation between participant’s and partner’s ratings of interests \\
+\hline
+ expected\_happy\_with\_sd\_people & How happy do you expect to be with the people at during event? \\
+\hline
+ expected\_num\_interested\_in\_me & Out of the 20, how many do you expect will be interested in you? \\
+\hline
+ expected\_num\_matches &  How many matches do you expect to get? \\
+\hline
+ like & Did you like your partner? \\
+\hline
+ guess\_prob\_liked & How likely do you think it is that your partner likes you? \\
+\hline
+ met &  Have you met your partner before? \\
+\hline
+ decision & Decision at night of event. \\
+\hline
+ decision\_o & Decision of partner at night of event. \\
+\hline
+ match & Match (yes/no) \\
+\hline
+\end{longtable}
+\end{center}
+
+
+## Preprocessing
+
+As the dataset had a lot duplicate fields and missing data, some amount of preprocessing was required to be performed. We performed data cleaning, data transformation, and data reduction as part of preprocessing. Firstly, the dataset had a number of features which were basically bucketed categorical variables of other present features. These features have been listed below:
+
+\begin{center}
+\begin{longtable}{|c|c|c| } 
+\hline
+d\_d\_age & d\_importance\_same\_race & d\_importance\_same\_religion \\
+\hline
+d\_pref\_o\_attractive & d\_pref\_o\_sincere & d\_pref\_o\_intelligence \\
+\hline
+d\_pref\_o\_funny & d\_pref\_o\_ambitious & d\_pref\_o\_shared\_interests \\
+\hline
+d\_attractive\_o & d\_sincere\_o & d\_intelligence\_o \\
+\hline
+d\_funny\_o & d\_ambitious\_o & d\_shared\_interests\_o \\
+\hline
+d\_attractive\_important & d\_sincere\_important & d\_intelligence\_important \\
+\hline
+d\_funny\_important & d\_ambitious\_important & d\_shared\_interests\_important \\
+\hline
+d\_attractive & d\_sincere & d\_intelligence \\
+\hline
+d\_funny & d\_ambitious & d\_shared\_interests \\
+\hline
+d\_attractive\_partner & d\_sincere\_partner & d\_intelligence\_partner \\
+\hline
+d\_funny\_partner & d\_ambitious\_partner & d\_shared\_interests\_partner \\
+\hline
+d\_sports & d\_tvsports & d\_exercise \\
+\hline
+d\_dining & d\_museums & d\_art \\
+\hline
+d\_hiking & d\_gaming & d\_clubbing \\
+\hline
+d\_reading & d\_tv & d\_theater \\
+\hline
+d\_movies & d\_concerts & d\_music \\
+\hline
+d\_shopping & d\_yoga & d\_interests\_correlate \\
+\hline
+d\_expected\_happy\_with\_sd\_people & d\_expected\_num\_interested\_in\_me & d\_expected\_num\_matches \\
+\hline
+d\_like & d\_guess\_prob\_liked\\
+\hline
+\end{longtable}
+\end{center}
+
+All of these fields were removed. Along with this, two more fields - has\_null and wave, which represented if the observation has a null value and the round of speed dating respectively were also removed. After this, all the fields were converted to to either numeric or factor as required. Although many of the machine learning models require the predictors to be all numeric, this task was left to be done during the time of model creation.
+
+Next we had to deal with missing values for both numeric and categorical type. Rather then using some existing library, which handles the imputation, we decided to fill in the missing values manually with mean and mode for numeric and categorical variables respectively. After the missing values are filled, we crosscheck if any more missing values exist.
+
+
+```{r, include = FALSE}
+#here comes the preprocessing details
+set.seed(67982193)
+#path <- "/home/dnivog/PaaniLoo/STAT 841/Project/speed-dating/speeddating.csv"
+path <- "H:\\Stat 841\\speed-dating\\data\\speeddating.csv"
+## Read the data as character data frame
+speed_dating <- read.csv(path, colClasses=c(rep("character",123)), na.string = "?")
+
+# Remove has_null and wave fields
+# Remove the fields which are bucketed nominal values for the numeric fields
+remove_fields <- c("has_null","wave","d_d_age","d_importance_same_race", "d_importance_same_religion",
+                   "d_pref_o_attractive", "d_pref_o_sincere", "d_pref_o_intelligence", "d_pref_o_funny", "d_pref_o_ambitious", "d_pref_o_shared_interests",
+                   "d_attractive_o", "d_sincere_o", "d_intelligence_o", "d_funny_o", "d_ambitious_o", "d_shared_interests_o",
+                   "d_attractive_important", "d_sincere_important", "d_intelligence_important", "d_funny_important", "d_ambitious_important", "d_shared_interests_important",
+                   "d_attractive", "d_sincere", "d_intelligence", "d_funny", "d_ambitious", "d_shared_interests",
+                   "d_attractive_partner", "d_sincere_partner", "d_intelligence_partner", "d_funny_partner", "d_ambitious_partner", "d_shared_interests_partner",
+                   "d_sports",	"d_tvsports",	"d_exercise",	"d_dining",	"d_museums",	"d_art",	"d_hiking",	"d_gaming",	"d_clubbing",	"d_reading",
+                   "d_tv",	"d_theater",	"d_movies",	"d_concerts",	"d_music",	"d_shopping",	"d_yoga",
+                   "d_interests_correlate", "d_expected_happy_with_sd_people",	"d_expected_num_interested_in_me",	"d_expected_num_matches",	"d_like",	"d_guess_prob_liked")
+speed_dating <- speed_dating[ , !(names(speed_dating) %in% remove_fields)]
+speed_dating$field <- tolower(speed_dating$field)
+
+## Convert the data fields to factor and numeric as needed
+speed_dating[,1]<-as.factor(speed_dating[,1])
+speed_dating[,5]<-as.factor(speed_dating[,5])
+speed_dating[,6]<-as.factor(speed_dating[,6])
+speed_dating[,7]<-as.factor(speed_dating[,7])
+speed_dating[,10]<-as.factor(speed_dating[,10])
+speed_dating[,64]<-as.factor(speed_dating[,64])
+speed_dating[,65]<-as.factor(speed_dating[,65])
+speed_dating[,66]<-as.factor(speed_dating[,66])
+speed_dating[,c(2:4,8,9,11:63)]<-as.numeric(unlist(speed_dating[,c(2:4,8,9,11:63)]))
+
+## Deal with NA values
+
+# Get the mode for factor predictors
+getmode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+# Replace NA value with mean for numeric
+for(i in c(2:4,8,9,11:63)) {
+  speed_dating[ , i][is.na(speed_dating[ , i])] <- mean(speed_dating[ , i], na.rm = TRUE)
+}
+
+# Replace NA values with mode for factor
+for(i in c(1,5:7,10,64:66)) {
+  speed_dating[ , i][is.na(speed_dating[ , i])] <- getmode(speed_dating[ , i])
+}
+
+```
+
+\newpage
+# Descriptive Analysis
+Before we commence the predictive analysis for the given dataset, we have to do some analysis of the dataset as it exists. There is a lot of information and conclusions that can be drawn just by looking closely at the data.
+
+Let's look at the summary of the data at first:
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE}
+summary(speed_dating)
+```
+
+As we can see all the attributes are properly scaled after preprocessing. All missing values have been dealt with and our data is ready to be used.
+
+## Ethnic Distribution
+
+Let's look at the different categorical attributes one by one. First of all let's analyze the attribute **race**
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE}
+summary(speed_dating$race)
+```
+
+As we can see, there are a total of 5 categories for race: "Asian/Pacific Islander/Asian-American" (which can also be referred to in short as Asian), "Black/African American" (Black in short), "Latino/Hispanic American" (Latino in short), "European/Caucasian-American" (White in short) and "Others".
+
+Most of the participants in the event are White (4790). The count for African America people is also significant with 1982 participants. People from other racial profiles are less in number compared to these two categories.
+
+This information is summarised by the following plot
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval = FALSE}
+ggplot(speed_dating, aes(fill=race, x=race)) + 
+  geom_histogram(stat="count")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+    ggtitle("Distribution of participants based on race")
+```
+
+
+\begin{center}\includegraphics[width=15cm]{images/df_by_race.png}\end{center}
+
+## Occupational Distribution
+
+Moving on to another categorical attribute: **field**
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+ggplot(speed_dating, aes(x=field)) + 
+  geom_histogram(stat="count")+
+  ggtitle("Different fields of work/study")+
+    theme(axis.text.x=element_blank())
+```
+
+
+\begin{center}\includegraphics[width=12cm]{images/fields.png}\end{center}
+
+As we can see there are so many different fields where the participants are working in or studying. Let's summarise the top few categories with a plot:
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+occ <- count(speed_dating, "field")
+sorted_occ <- occ[order(occ$freq, decreasing = T),]
+top_occ <- head(sorted_occ, 10)
+
+ggplot(top_occ, aes(x=field, y=freq)) + 
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+    ggtitle("Popular fields of work/study")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/popular_fields.png}\end{center}
+
+As seen from the plot, the most common field among the different participants is Business with 694 occurrences. It is closely followed by Law and MBA with frequencies of 604 and 468 respectively. But the important thing to note here is that no one field is dominating other fields in any significant way. The dataset seems to have a well diversified portfolio of people from different fields. This is a good feature to have in the dataset as it mimics the whole population much better.
+
+## Age Distribution
+
+Now, let's look at the attribute **age**
+
+Age is one of the most if not the most important attribute one looks for in their partner. As such it is very important to have a deeper look at the ages of all the people who participated in the event.
+
+We will start by having a simple histogram for the age of the participants:
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+ggplot(speed_dating, aes(fill=gender, age)) + 
+  geom_histogram()+
+    ggtitle("Age distribution for men and women")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/age_w.png}\end{center}
+
+As we can see, the plot also distinguishes the age distribution for men and women. The spread of age is pretty much similar for both genders with the most number of participants from either gender being around the age of high 20s. There is also a significant amount of people with ages in the low twenties and low thirties. The graph also shows that not many people beyond the age of 35 showed up to participate in the event.
+
+So it can be concluded from this plot that a very high percentage of people participating in this event are of the “right age” group in terms of eligibility to seek a romantic relationship.
+
+This is also confirmed by the following plot where we look at the mean age for both genders
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+mean_age_male <- mean(speed_dating[speed_dating$gender == "male", ]$age)
+mean_age_female <- mean(speed_dating[speed_dating$gender == "female", ]$age)
+dd <- data.frame(
+  mean_age = c(mean_age_male, mean_age_female),
+  gender = c("male", "female")
+)
+
+ggplot(dd, aes(fill=gender, x=gender, y=mean_age)) + 
+  geom_bar(position="dodge", stat="identity") +
+  geom_text(data=dd,aes(label=round(mean_age, digits = 2)),vjust=-0.2)+
+    ggtitle("Mean age for men and women")
+
+```
+
+\begin{center}\includegraphics[width=12cm]{images/mean_age.png}\end{center}
+
+The plot shows that the average age for males and females participating in the event is almost exactly the same. The male participants are ever so slightly older than their female counterparts to be very accurate.
+
+Another way of segregating participants in terms of their age is to look at the age distribution for participants from different racial profiles. This can be done by finding the mean age for participants with different races. The results are summarised by the following plot:
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+
+# mean age by race
+mean_age_ECA     <-  mean(speed_dating[speed_dating$race == "European/Caucasian-American",]$age)
+mean_age_Asian   <-  mean(speed_dating[speed_dating$race == "'Asian/Pacific Islander/Asian-American'",]$age)
+mean_age_Black   <-  mean(speed_dating[speed_dating$race == "'Black/African American'",]$age)
+mean_age_Latino  <-  mean(speed_dating[speed_dating$race == "'Latino/Hispanic American'",]$age)
+mean_age_Other   <-  mean(speed_dating[speed_dating$race == "Other",]$age)
+
+dd <- data.frame(
+  race = c(
+    "White",
+    "Asian",
+    "Black",
+    "Latino",
+    "Other"
+  ),
+  mean_age = c(
+    mean_age_ECA,  
+    mean_age_Asian,
+    mean_age_Black, 
+    mean_age_Latino,
+    mean_age_Other 
+  )
+)
+
+ggplot(dd, aes(fill=race, x=race, y=mean_age)) + 
+  geom_bar(position="dodge", stat="identity") +
+  geom_text(data=dd,aes(label=round(mean_age, digits = 2)),vjust=-0.2)+
+    ggtitle("Mean age across different races")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/mean_age_race.png}\end{center}
+
+This plot also shows a very consistent distribution of age throughout the participants across different racial profiles. It is to be noted that out of all other races, people from Asian background have the lowest mean age of 25.91 while participant with Latin background have the highest mean age of 26.93. Between these two groups the difference is more than a year. Generally such a difference in age shouldn't mean much but it will be interesting to note the difference of ages of individuals in various dates. Participants that are either Black or White have almost the same age on average while people from Other categories are slightly younger than the rest except for the Asian group.
+
+We can further analyze the age distribution of the participants of different races by separating the data for males and females as well. This information is summarised below:
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+male_mean_age_ECA     <-  mean(speed_dating[speed_dating$gender == "male" & speed_dating$race == "European/Caucasian-American",]$age)
+male_mean_age_Asian   <-  mean(speed_dating[speed_dating$gender == "male" & speed_dating$race == "'Asian/Pacific Islander/Asian-American'",]$age)
+male_mean_age_Black   <-  mean(speed_dating[speed_dating$gender == "male" & speed_dating$race == "'Black/African American'",]$age)
+male_mean_age_Latino  <-  mean(speed_dating[speed_dating$gender == "male" & speed_dating$race == "'Latino/Hispanic American'",]$age)
+male_mean_age_Other   <-  mean(speed_dating[speed_dating$gender == "male" & speed_dating$race == "Other",]$age)
+
+dd <- data.frame(
+  race = c(
+    "White",
+    "Asian",
+    "Black",
+    "Latino",
+    "Other"
+  ),
+  mean_age = c(
+    male_mean_age_ECA,  
+    male_mean_age_Asian,
+    male_mean_age_Black, 
+    male_mean_age_Latino,
+    male_mean_age_Other 
+  )
+)
+
+ggplot(dd, aes(fill=race, x=race, y=mean_age)) + 
+  geom_bar(position="dodge", stat="identity") +
+  geom_text(data=dd,aes(label=round(mean_age, digits = 2)),vjust=-0.2)+
+  ggtitle("Mean age across different races for men")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/mean_age_men_race.png}\end{center}
+
+The trend shown by this graph is almost similar to the previous graph. Asian men are still the youngest of the lot on average and Latino men are the oldest. The gap between the two is almost 1.5 years on average. But again, this difference shouldn't mean much in the grand scheme of things. White and Black men are again of comparable mean age but unlike in the previous graph, it is the Black men who are younger than the rest except Asian men among all other races. So among men, Black and Asian males are the youngest on average.
+
+Looking at the similar plot for women:
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+female_mean_age_ECA <-  mean(speed_dating[speed_dating$gender == "female" & speed_dating$race == "European/Caucasian-American",]$age)
+female_mean_age_Asian <-  mean(speed_dating[speed_dating$gender == "female" & speed_dating$race == "'Asian/Pacific Islander/Asian-American'",]$age)
+female_mean_age_Black <-  mean(speed_dating[speed_dating$gender == "female" & speed_dating$race == "'Black/African American'",]$age)
+female_mean_age_Latino <-  mean(speed_dating[speed_dating$gender == "female" & speed_dating$race == "'Latino/Hispanic American'",]$age)
+female_mean_age_Other <-  mean(speed_dating[speed_dating$gender == "female" & speed_dating$race == "Other",]$age)
+
+dd <- data.frame(
+  race = c(
+    "White",
+    "Asian",
+    "Black",
+    "Latino",
+    "Other"
+  ),
+  mean_age = c(
+    female_mean_age_ECA,  
+    female_mean_age_Asian,
+    female_mean_age_Black, 
+    female_mean_age_Latino,
+    female_mean_age_Other 
+  )
+)
+
+ggplot(dd, aes(fill=race, x=race, y=mean_age)) + 
+  geom_bar(position="dodge", stat="identity") +
+  geom_text(data=dd,aes(label=round(mean_age, digits = 2)),vjust=-0.2)+
+ggtitle("Mean age across different races for women")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/mean_age_women_race.png}\end{center}
+
+The distribution of age for females is different from the overall statistics. Unlike the previous analysis, Asian females are not the youngest group among other females. In Fact it is females from the category "Others" that take the cake in terms of being the youngest on average. The average of all categories is less than that of men as expected. White and Asian women are still relatively younger compared to Black and Latino women who are among the oldest on average among all women.
+
+## Analysis Related To Various Qualities
+
+After analyzing these descriptive features of the dataset we can now look into more details of dataset in order to generate some insights into people's preferences, perception and expectations.
+
+We will start by finding out what do different people look for in their partners. This analysis is done separately for both men and women in order to compare the preferences across genders. To do this analysis, we make use of the fields like **attractive_important** which basically depicts how important does a person rate attractiveness of their partner. This analysis is done for all different qualities that are available in the dataset. Since we want statistics on an aggregate for different genders, we suffice by taking the mean of these ratings as given by individuals.
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+dd <- data.frame(
+  quality = c(),
+  value = c(),
+  race = c()
+)
+for (r in c("female", "male")){
+  d1 <- summarise(
+    speed_dating[speed_dating$gender == r, ],
+    Attractive = mean(attractive_important),
+    Sincere = mean(sincere_important),
+    Intelligent = mean(intelligence_important),
+    Funny = mean(funny_important),
+    Ambitious = mean(ambitious_important),
+    Same_int = mean(shared_interests_important)
+  )
+  d2 <- data.frame(
+    quality = names(d1),
+    value = unlist(d1[1,], use.names=FALSE),
+    gender = rep(r, 6)
+  )
+  dd <- rbind(dd, d2)
+}
+ggplot(dd, aes(fill=gender, y=value, x=quality)) + 
+  geom_bar(position="dodge", stat="identity") +
+  coord_flip() +
+    ggtitle("Preferences in partner by men and women")
+
+```
+
+\begin{center}\includegraphics[width=12cm]{images/pref_mw.png}\end{center}
+
+The plot above gives a lot of insights. Some of these revelations confirm common social beliefs but some denies them outright. For example, it is believed that men find it very important to have a partner who is attractive. This belief is completely supported by the data. Out of all other features, men give the most importance to their partner being attractive. And the difference between **attractiveness** and other qualities is quite significant in case of men. Women on the other hand do not give attractiveness as much importance as men do. In fact attractiveness is not even their most preferred quality in their partners. For women, the most important quality in their potential partner is **intelligence** but the gap between this and other qualities is not as significant. **This goes to show that women look for partners who are much more balanced across different qualities while men show an overwhelming inclination towards attractiveness.**
+
+Looking at **sincerity**, both men and women give a decent amount of importance to this quality with women giving slightly more importance than men. Another quality which is significantly desired by both men and women is being **funny**. The importance for both men and women is quite close but men do show slightly more importance to it.
+
+The qualities that are given relatively less importance by both men and women are **same interests** and **ambitions**. **Both men and women don't mind partners with somewhat different interests** but females do care about this a little more than males. Even though both men and women give less importance to ambition, **men really seem to care far less about their partners ambitions than women.**
+
+We can do a similar analysis for people of different races.
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+dd <- data.frame(
+  quality = c(),
+  value = c(),
+  race = c()
+)
+
+for (r in c("European/Caucasian-American",
+            "'Asian/Pacific Islander/Asian-American'",
+            "'Black/African American'",
+            "'Latino/Hispanic American'",
+            "Other")){
+  d1 <- summarise(
+    speed_dating[speed_dating$race == r, ],
+    Attractive = mean(attractive_important),
+    Sincere = mean(sincere_important),
+    Intelligent = mean(intelligence_important),
+    Funny = mean(funny_important),
+    Ambitious = mean(ambitious_important),
+    Same_int = mean(shared_interests_important)
+  )
+  d2 <- data.frame(
+    quality = names(d1),
+    value = unlist(d1[1,], use.names=FALSE),
+    race = rep(r, 6)
+  )
+  dd <- rbind(dd, d2)
+}
+ggplot(dd, aes(fill=race, y=value, x=quality)) + 
+  geom_bar(position="dodge", stat="identity") +
+  coord_flip() +
+ggtitle("Preferences in partner by people of different ethnicities")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/pref_race.png}\end{center}
+
+The plot shows some interesting results. Attractiveness has a clear advantage over other qualities unanimously for all groups of people with Caucasian participants showing the highest preference for an attractive partner. Some more interesting conclusions that can be drawn from the plot are:
+
+1. People of Asian background give more importance to **sincerity** and same interests than people from other ethnicities. 
+2. European/Caucasian-American and Black/African-American people seem to care the least about **sincerity**.
+3. Asian participants surprisingly care the least about **intelligence** among all other groups while Latin and White participants seem to rate intelligence the highest.
+4. White and Black participants care more about their partner being **funny** than Latin and Asian participants.
+5. **Ambition** is rated the highest by Black participants.
+
+Moving on, we now analyse the observed differences between the ratings given by a person to oneself vs the ratings given to them by their potential partners. Like with previous cases, we do this analysis separately for both genders. 
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+ratings_by_partner <- select(speed_dating, gender, sincere_o, intelligence_o, 
+                             attractive_o, funny_o, ambitious_o)
+ratings_by_self <- select(speed_dating, gender, sincere, intelligence,
+                          attractive, funny, ambitious)
+names(ratings_by_partner) <- names(ratings_by_self)
+a <- summarise(
+    ratings_by_partner[ratings_by_partner$gender == "female",],
+    Attractive = mean(attractive),
+    Sincere = mean(sincere),
+    Intelligent = mean(intelligence),
+    Funny = mean(funny),
+    Ambitious = mean(ambitious)
+  )
+b <- a <- summarise(
+  ratings_by_partner[ratings_by_partner$gender == "male",],
+  Attractive = mean(attractive),
+  Sincere = mean(sincere),
+  Intelligent = mean(intelligence),
+  Funny = mean(funny),
+  Ambitious = mean(ambitious)
+)
+average_ratings_by_partner <- rbind(a, b)
+a <- summarise(
+  ratings_by_self[ratings_by_self$gender == "female",],
+  Attractive = mean(attractive),
+  Sincere = mean(sincere),
+  Intelligent = mean(intelligence),
+  Funny = mean(funny),
+  Ambitious = mean(ambitious)
+)
+b <- summarise(
+  ratings_by_self[ratings_by_self$gender == "male",],
+  Attractive = mean(attractive),
+  Sincere = mean(sincere),
+  Intelligent = mean(intelligence),
+  Funny = mean(funny),
+  Ambitious = mean(ambitious)
+)
+average_ratings_by_self <- rbind(a, b)
+
+
+ratings_male_partner <- data.frame(
+)
+for (row in 2:ncol(average_ratings_by_partner)){
+  ratings_male_partner[row-1, "quality"] <- names(average_ratings_by_partner)[row]
+  ratings_male_partner[row-1, "value"] <- average_ratings_by_partner[2, row]
+  ratings_male_partner[row-1, "rater"] <- "partner"
+}
+
+ratings_male_self <- data.frame(
+)
+for (row in 2:ncol(average_ratings_by_self)){
+  ratings_male_self[row-1, "quality"] <- names(average_ratings_by_self)[row]
+  ratings_male_self[row-1, "value"] <- average_ratings_by_self[2, row]
+  ratings_male_self[row-1, "rater"] <- "self"
+}
+ratings_male <- rbind(ratings_male_partner, ratings_male_self)
+
+ratings_female_partner <- data.frame(
+)
+for (row in 2:ncol(average_ratings_by_partner)){
+  ratings_female_partner[row-1, "quality"] <- names(average_ratings_by_partner)[row]
+  ratings_female_partner[row-1, "value"] <- average_ratings_by_partner[1, row]
+  ratings_female_partner[row-1, "rater"] <- "partner"
+}
+
+ratings_female_self <- data.frame(
+)
+for (row in 2:ncol(average_ratings_by_self)){
+  ratings_female_self[row-1, "quality"] <- names(average_ratings_by_self)[row]
+  ratings_female_self[row-1, "value"] <- average_ratings_by_self[1, row]
+  ratings_female_self[row-1, "rater"] <- "self"
+}
+ratings_female <- rbind(ratings_female_partner, ratings_female_self)
+
+```
+
+First, let us look at the how **men** perceive themselves across different attributes vs how they were rated by their partners.
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+ggplot(ratings_male, aes(fill=rater, y=value, x=quality)) + 
+  geom_bar(position="dodge", stat="identity")+
+  coord_flip()+
+    ggtitle("Ratings given by men to themselves vs partner rating")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/percept_men.png}\end{center}
+
+Right off the bat it is clear that there is overestimation of oneself by men across all qualities. Some interesting conclusions from the plot are:
+
+1. Men rate their **intelligence** nearly the same as women opposite to them do.
+2. The biggest misconception men have about themselves is being more **funny** than what their potential partners think.
+3. The amount of overestimation men do for qualities like **sincerity**, **attractiveness** and **ambition** is about the same when compared to the ratings given by women.
+
+Moving on to the same analysis for women
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+ggplot(ratings_female, aes(fill=rater, y=value, x=quality)) + 
+  geom_bar(position="dodge", stat="identity")+
+  coord_flip()+
+    ggtitle("Ratings given by women to themselves vs partner rating")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/percept_women.png}\end{center}
+
+A similar trend is seen in case of women as well. They also seem to overestimate their attributes in all aspects when compared to the partners' ratings. Some other conclusions from the plots are:
+
+1. The gap between the self perception of being **funny** and what the partner rates them to be is also the largest in case of women.
+2. There is also a significant gap between the ratings given to self by women on **sincerity** and **ambition** vs the ratings given on the same quality by men.
+3. The difference between the perceived and rated values of **attractiveness** and **intelligence** is less for women.
+
+## Rate of Acceptance/ Optimism/ Pessimism
+
+Next we will look into the acceptance rate across different genders and ethnicities. By acceptance rate we generally refer to the fraction of people belonging to a certain group that actually say yes to their partners. This analysis does not take into account other factors, rather it just serves as a metric to define which groups are seemingly less strict when saying yes to potential romantic relationships.
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+# Acceptance Rejection rate
+male <- 0
+female <- 0
+male_said_yes <- 0
+male_partner_said_yes <- 0
+female_said_yes <- 0
+female_partner_said_yes <- 0
+
+male_said_no <- 0
+male_partner_said_no <- 0
+female_said_no <- 0
+female_partner_said_no <- 0
+
+for (row in 1:nrow(speed_dating)){
+  if (speed_dating$gender[row] == "female"){
+    female <- female + 1
+    if (speed_dating$decision[row] == 1){
+      female_said_yes <- female_said_yes + 1 
+    }
+    else {
+      female_said_no <- female_said_no + 1
+    }
+    if (speed_dating$decision_o[row] == 1){
+      female_partner_said_yes <- female_partner_said_yes + 1
+    }
+    else {
+      female_partner_said_no <- female_partner_said_no + 1
+    }
+  }
+  else {
+    male <- male + 1
+    if (speed_dating$decision[row] == 1){
+      male_said_yes <- male_said_yes + 1 
+    }
+    else {
+      male_said_no <- male_said_no + 1
+    }
+    if (speed_dating$decision_o[row] == 1){
+      male_partner_said_yes <- male_partner_said_yes + 1
+    }
+    else {
+      male_partner_said_no <- male_partner_said_no + 1
+    }
+  }
+}
+
+dd <- data.frame(
+  gender = c("male", "male", "female", "female"),
+  value = c(male_said_yes/male, male_said_no/male, 
+            female_said_yes/female, female_said_no/female),
+  type = c("said_yes", "said_no", "said_yes", "said_no")
+)
+
+# no yes rate for male and females
+ggplot(dd, aes(fill=type, y=value, x=gender)) + 
+  geom_bar(position="fill", stat="identity") +
+    ggtitle("Acceptance/Rejection rate by men and women")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/ar_sex.png}\end{center}
+
+It is quite clear from the plot that **Men say yes to potential partners more often than women and consequently women say no more than men.**
+
+Next we look at fractions when a person thinks the opposite person is into them while the partner says no (we term this as optimism) and the times when a person does not think the partner will like them but in reality the partner did say yes to them (we term this pessimism). Along the same terms, we define realism as when a person correctly anticipates the partners liking/disliking towards them.
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+#optimism vs pessimism correct vaala
+male_optimism <- nrow(speed_dating[speed_dating$like>=5 & 
+        speed_dating$decision_o == 0 &
+          speed_dating$gender == "male",])
+female_optimism <- nrow(speed_dating[speed_dating$like>=5 & 
+        speed_dating$decision_o == 0 &
+        speed_dating$gender == "female",])
+male_pessimism <- nrow(speed_dating[speed_dating$like<5 & 
+                                     speed_dating$decision_o == 1 &
+                                     speed_dating$gender == "male",])
+female_pessimism <- nrow(speed_dating[speed_dating$like<5 & 
+                                       speed_dating$decision_o == 1 &
+                                       speed_dating$gender == "female",])
+male <- nrow(speed_dating[speed_dating$gender == "male",])
+female <- nrow(speed_dating[speed_dating$gender == "female",])
+male_realism <- male - male_optimism - male_pessimism
+female_realism <- female - female_optimism - female_pessimism
+dd <- data.frame(
+  type = c("optimism", "optimism", "pessimism", "pessimism",
+           "realism", "realism"),
+  value = c(male_optimism/male, female_optimism/female, 
+            male_pessimism/male, female_pessimism/female,
+            male_realism/male, female_realism/female),
+  gender = c("male", "female", "male", "female", "male", "female")
+)
+
+# no yes rate for male and females
+ggplot(dd, aes(fill=gender, y=value, x=type)) + 
+  geom_bar(position="fill", stat="identity") +
+    ggtitle("Optimism/Pessimism/Realism for Men and Women")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/opti_mw.png}\end{center}
+
+The following can be concluded from the plot:
+
+1. More men are optimistic than women and the difference is also significant.
+2. More women are pessimistic than men and the difference is large in this case too between the two genders.
+3. The above observations conclude what the plot also shows that **men are generally more optimistic about their chances and women are pessimistic in this regard.** Also women seem to have a slightly better idea of judging whether their partner is interested in them or not (realism).
+
+Now, let's look at percentages of various ethinic groups that say yes to their partners.
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+# most tharki race
+ECA <- sum(speed_dating$race == "European/Caucasian-American")
+Asian <- sum(speed_dating$race == "'Asian/Pacific Islander/Asian-American'")
+Black <- sum(speed_dating$race == "'Black/African American'")
+Latino <- sum(speed_dating$race == "'Latino/Hispanic American'")
+Other <- sum(speed_dating$race == "Other")
+
+ECA_said_yes <- nrow(speed_dating[speed_dating$race == "European/Caucasian-American" & speed_dating$decision == 1,])
+Asian_said_yes <- nrow(speed_dating[speed_dating$race == "'Asian/Pacific Islander/Asian-American'" & speed_dating$decision == 1,])
+Black_said_yes <- nrow(speed_dating[speed_dating$race == "'Black/African American'" & speed_dating$decision == 1,])
+Latino_said_yes <- nrow(speed_dating[speed_dating$race == "'Latino/Hispanic American'" & speed_dating$decision == 1,])
+Other_said_yes <- nrow(speed_dating[speed_dating$race == "Other" & speed_dating$decision == 1,])
+
+dd <- data.frame(
+  race = c(
+    "White",
+     "Asian",
+     "Black",
+     "Latino",
+     "Other"
+    ),
+  yes_percentage = c(
+    ECA_said_yes/ECA*100,
+    Asian_said_yes/Asian*100,
+    Black_said_yes/Black*100,
+    Latino_said_yes/Latino*100,
+    Other_said_yes/Other*100
+  )
+)
+
+ggplot(dd, aes(fill=race, y=yes_percentage, x=race)) + 
+  geom_bar(position="dodge", stat="identity") +
+    ggtitle("Acceptance rate across different ethnicities")
+
+```
+
+\begin{center}\includegraphics[width=12cm]{images/ar_race.png}\end{center}
+
+The graph shows that **Black participants say yes more than any other ethinic groups while White participants say yes the least.**
+
+This can also be decomposed for both genders:
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+# most tharki race by gender
+
+ECA_male <- nrow(speed_dating[speed_dating$race == "European/Caucasian-American" & speed_dating$gender == "male",])
+Asian_male <- nrow(speed_dating[speed_dating$race == "'Asian/Pacific Islander/Asian-American'" & speed_dating$gender == "male",])
+Black_male <- nrow(speed_dating[speed_dating$race == "'Black/African American'" & speed_dating$gender == "male",])
+Latino_male <- nrow(speed_dating[speed_dating$race == "'Latino/Hispanic American'" & speed_dating$gender == "male",])
+Other_male <- nrow(speed_dating[speed_dating$race == "Other" & speed_dating$gender == "male",])
+
+ECA_male_said_yes <- nrow(speed_dating[speed_dating$race == "European/Caucasian-American" & speed_dating$gender == "male" & speed_dating$decision == 1,])
+Asian_male_said_yes <- nrow(speed_dating[speed_dating$race == "'Asian/Pacific Islander/Asian-American'" & speed_dating$gender == "male" & speed_dating$decision == 1,])
+Black_male_said_yes <- nrow(speed_dating[speed_dating$race == "'Black/African American'" & speed_dating$gender == "male" & speed_dating$decision == 1,])
+Latino_male_said_yes <- nrow(speed_dating[speed_dating$race == "'Latino/Hispanic American'" & speed_dating$gender == "male" & speed_dating$decision == 1,])
+Other_male_said_yes <- nrow(speed_dating[speed_dating$race == "Other" & speed_dating$gender == "male" & speed_dating$decision == 1,])
+
+dd <- data.frame(
+  race = c(
+    "Male White",
+    "Male Asian",
+    "Male Black",
+    "Male Latino",
+    "Male Other"
+  ),
+  yes_percentage = c(
+    ECA_male_said_yes/ECA_male*100,
+    Asian_male_said_yes/Asian_male*100,
+    Black_male_said_yes/Black_male*100,
+    Latino_male_said_yes/Latino_male*100,
+    Other_male_said_yes/Other_male*100
+  )
+)
+ggplot(dd, aes(fill=race, y=yes_percentage, x=race)) + 
+  geom_bar(position="dodge", stat="identity") +
+  ggtitle("Acceptance rate by Men across different ethnicities")
+
+
+ECA_female <- nrow(speed_dating[speed_dating$race == "European/Caucasian-American" & speed_dating$gender == "female",])
+Asian_female <- nrow(speed_dating[speed_dating$race == "'Asian/Pacific Islander/Asian-American'" & speed_dating$gender == "female",])
+Black_female <- nrow(speed_dating[speed_dating$race == "'Black/African American'" & speed_dating$gender == "female",])
+Latino_female <- nrow(speed_dating[speed_dating$race == "'Latino/Hispanic American'" & speed_dating$gender == "female",])
+Other_female <- nrow(speed_dating[speed_dating$race == "Other" & speed_dating$gender == "female",])
+
+ECA_female_said_yes <- nrow(speed_dating[speed_dating$race == "European/Caucasian-American" & speed_dating$gender == "female" & speed_dating$decision == 1,])
+Asian_female_said_yes <- nrow(speed_dating[speed_dating$race == "'Asian/Pacific Islander/Asian-American'" & speed_dating$gender == "female" & speed_dating$decision == 1,])
+Black_female_said_yes <- nrow(speed_dating[speed_dating$race == "'Black/African American'" & speed_dating$gender == "female" & speed_dating$decision == 1,])
+Latino_female_said_yes <- nrow(speed_dating[speed_dating$race == "'Latino/Hispanic American'" & speed_dating$gender == "female" & speed_dating$decision == 1,])
+Other_female_said_yes <- nrow(speed_dating[speed_dating$race == "Other" & speed_dating$gender == "female" & speed_dating$decision == 1,])
+
+dd <- data.frame(
+  race = c(
+    "Female White",
+    "Female Asian",
+    "Female Black",
+    "Female Latino",
+    "Female Other"
+  ),
+  yes_percentage = c(
+    ECA_female_said_yes/ECA_male*100,
+    Asian_female_said_yes/Asian_female*100,
+    Black_female_said_yes/Black_female*100,
+    Latino_female_said_yes/Latino_female*100,
+    Other_female_said_yes/Other_female*100
+  )
+)
+```
+
+\begin{center}\includegraphics[width=12cm]{images/ar_mrace.png}\end{center}
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+ggplot(dd, aes(fill=race, y=yes_percentage, x=race)) + 
+  geom_bar(position="dodge", stat="identity") +
+  theme(axis.text.x=element_blank()) +
+    ggtitle("Acceptance rate by Women across different ethnicities")
+
+```
+
+\begin{center}\includegraphics[width=12cm]{images/ar_wrace.png}\end{center}
+
+The above two plots simply corroborates the overall results.
+
+Next we look at acceptance rate for people in different age groups.
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+# acceptance with age group
+age1 <- nrow(speed_dating[speed_dating$age < 20,])
+age2 <- nrow(speed_dating[speed_dating$age >= 20 & speed_dating$age < 25,])
+age3 <- nrow(speed_dating[speed_dating$age >= 25 & speed_dating$age < 30,])
+age4 <- nrow(speed_dating[speed_dating$age >= 30 & speed_dating$age < 35,])
+age5 <- nrow(speed_dating[speed_dating$age >= 35 & speed_dating$age < 40,])
+age6 <- nrow(speed_dating[speed_dating$age >= 40,])
+
+age1_said_yes <- nrow(speed_dating[speed_dating$age < 20 & speed_dating$decision == 1,])
+age2_said_yes <- nrow(speed_dating[speed_dating$age >= 20 & speed_dating$age < 25 & speed_dating$decision == 1,])
+age3_said_yes <- nrow(speed_dating[speed_dating$age >= 25 & speed_dating$age < 30 & speed_dating$decision == 1,])
+age4_said_yes <- nrow(speed_dating[speed_dating$age >= 30 & speed_dating$age < 35 & speed_dating$decision == 1,])
+age5_said_yes <- nrow(speed_dating[speed_dating$age >= 35 & speed_dating$age < 40 & speed_dating$decision == 1,])
+age6_said_yes <- nrow(speed_dating[speed_dating$age >= 40 & speed_dating$decision == 1,])
+
+dd <- data.frame(
+  age_group = c("<20", "20-25", "25-30", "30-35", "35-40", ">40"),
+  yes_percentage = c(
+    age1/age1_said_yes*100,
+    age2/age2_said_yes*100,
+    age3/age3_said_yes*100,
+    age4/age4_said_yes*100,
+    age5/age5_said_yes*100,
+    age6/age6_said_yes*100
+  )
+)
+
+ggplot(dd, aes(fill=age_group, y=yes_percentage, x=age_group)) + 
+  geom_bar(position="dodge", stat="identity") +
+    ggtitle("Acceptance rate across different age groups")
+
+```
+
+\begin{center}\includegraphics[width=12cm]{images/ar_age.png}\end{center}
+
+The following conclusions can be drawn from this plot:
+
+1. Participants below the age of 20 say yes a lot more than any other age group. The difference is almost a 100 percent. We can say that **very young people are very generous in their acceptance for potential romantic partners.**
+2. People above the age of 40 say yes to potential partners the least. We can say that **older people are very strict in their selection process.**
+
+Doing the same analysis for both men and women separately.
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+# acceptance with age group for men
+age1_male <- nrow(speed_dating[speed_dating$age < 20 & speed_dating$gender == "male",])
+age2_male <- nrow(speed_dating[speed_dating$age >= 20 & speed_dating$age < 25 & speed_dating$gender == "male",])
+age3_male <- nrow(speed_dating[speed_dating$age >= 25 & speed_dating$age < 30 & speed_dating$gender == "male",])
+age4_male <- nrow(speed_dating[speed_dating$age >= 30 & speed_dating$age < 35 & speed_dating$gender == "male",])
+age5_male <- nrow(speed_dating[speed_dating$age >= 35 & speed_dating$age < 40 & speed_dating$gender == "male",])
+age6_male <- nrow(speed_dating[speed_dating$age >= 40 & speed_dating$gender == "male",])
+
+age1_male_said_yes <- nrow(speed_dating[speed_dating$age < 20 & speed_dating$decision == 1 & speed_dating$gender == "male",])
+age2_male_said_yes <- nrow(speed_dating[speed_dating$age >= 20 & speed_dating$age < 25 & speed_dating$decision == 1 & speed_dating$gender == "male",])
+age3_male_said_yes <- nrow(speed_dating[speed_dating$age >= 25 & speed_dating$age < 30 & speed_dating$decision == 1 & speed_dating$gender == "male",])
+age4_male_said_yes <- nrow(speed_dating[speed_dating$age >= 30 & speed_dating$age < 35 & speed_dating$decision == 1 & speed_dating$gender == "male",])
+age5_male_said_yes <- nrow(speed_dating[speed_dating$age >= 35 & speed_dating$age < 40 & speed_dating$decision == 1 & speed_dating$gender == "male",])
+age6_male_said_yes <- nrow(speed_dating[speed_dating$age >= 40 & speed_dating$decision == 1 & speed_dating$gender == "male",])
+
+dd <- data.frame(
+  age_group = c("<20", "20-25", "25-30", "30-35", "35-40", ">40"),
+  yes_percentage = c(
+    age1_male/age1_male_said_yes*100,
+    age2_male/age2_male_said_yes*100,
+    age3_male/age3_male_said_yes*100,
+    age4_male/age4_male_said_yes*100,
+    age5_male/age5_male_said_yes*100,
+    age6_male/age6_male_said_yes*100
+  )
+)
+
+ggplot(dd, aes(fill=age_group, y=yes_percentage, x=age_group)) + 
+  geom_bar(position="dodge", stat="identity")+
+    ggtitle("Acceptance rate by men at different age groups")
+
+# acceptance with age group for women
+age1_female <- nrow(speed_dating[speed_dating$age < 20 & speed_dating$gender == "female",])
+age2_female <- nrow(speed_dating[speed_dating$age >= 20 & speed_dating$age < 25 & speed_dating$gender == "female",])
+age3_female <- nrow(speed_dating[speed_dating$age >= 25 & speed_dating$age < 30 & speed_dating$gender == "female",])
+age4_female <- nrow(speed_dating[speed_dating$age >= 30 & speed_dating$age < 35 & speed_dating$gender == "female",])
+age5_female <- nrow(speed_dating[speed_dating$age >= 35 & speed_dating$age < 40 & speed_dating$gender == "female",])
+age6_female <- nrow(speed_dating[speed_dating$age >= 40 & speed_dating$gender == "female",])
+
+age1_female_said_yes <- nrow(speed_dating[speed_dating$age < 20 & speed_dating$decision == 1 & speed_dating$gender == "female",])
+age2_female_said_yes <- nrow(speed_dating[speed_dating$age >= 20 & speed_dating$age < 25 & speed_dating$decision == 1 & speed_dating$gender == "female",])
+age3_female_said_yes <- nrow(speed_dating[speed_dating$age >= 25 & speed_dating$age < 30 & speed_dating$decision == 1 & speed_dating$gender == "female",])
+age4_female_said_yes <- nrow(speed_dating[speed_dating$age >= 30 & speed_dating$age < 35 & speed_dating$decision == 1 & speed_dating$gender == "female",])
+age5_female_said_yes <- nrow(speed_dating[speed_dating$age >= 35 & speed_dating$age < 40 & speed_dating$decision == 1 & speed_dating$gender == "female",])
+age6_female_said_yes <- nrow(speed_dating[speed_dating$age >= 40 & speed_dating$decision == 1 & speed_dating$gender == "female",])
+
+dd <- data.frame(
+  age_group = c("<20", "20-25", "25-30", "30-35", "35-40", ">40"),
+  yes_percentage = c(
+    age1_female/age1_female_said_yes*100,
+    age2_female/age2_female_said_yes*100,
+    age3_female/age3_female_said_yes*100,
+    age4_female/age4_female_said_yes*100,
+    age5_female/age5_female_said_yes*100,
+    age6_female/age6_female_said_yes*100
+  )
+)
+```
+
+\begin{center}\includegraphics[width=12cm]{images/ar_mage.png}\end{center}
+
+```{r, fig.align="center", out.width="75%", out.height="75%", echo=FALSE, eval=FALSE}
+ggplot(dd, aes(fill=age_group, y=yes_percentage, x=age_group)) + 
+  geom_bar(position="dodge", stat="identity")+
+    ggtitle("Acceptance rate by women at different age groups")
+
+```
+
+\begin{center}\includegraphics[width=12cm]{images/ar_wage.png}\end{center}
+
+The results from plots for men and women are quite different. Following useful conclusions can be drawn from these:
+
+1. The percentage of men below the age of 20 that say yes to others is extraordinarily large compared to all other groups. We can say that **young men are extremely eager to say yer to various partners.**
+2. The percentage of women below the age of 20 and above the age of 40, that say yes to partners is lower than all other age groups among women. We can say that **women between the ages of 20 and 40 are more likely to say yes than women that are too young or old.**
+
+## Hobbies and Interests Analysis
+
+The dataset also contains a lot of information regarding various hobbies/interests each person has. This has some potential to analyse the differences between men and women in terms of their various interests and hobbies. The following plots summarise some of these hobbies:
+
+```{r, fig.align="center", out.width="95%", out.height="95%", echo=FALSE, eval=FALSE}
+# hobbies comparison
+
+sports <-  ggplot(speed_dating, aes(sports)) +
+  geom_density(aes(fill=gender), alpha=0.5) 
+
+movies <-  ggplot(speed_dating, aes(movies)) +
+  geom_density(aes(fill=gender), alpha=0.5) 
+
+music <-  ggplot(speed_dating, aes(music)) +
+  geom_density(aes(fill=gender), alpha=0.5) 
+
+yoga <- ggplot(speed_dating, aes(yoga)) +
+  geom_density(aes(fill=gender), alpha=0.5) 
+
+shopping <-  ggplot(speed_dating, aes(shopping)) +
+  geom_density(aes(fill=gender), alpha=0.5) 
+
+gaming <- ggplot(speed_dating, aes(gaming)) +
+  geom_density(aes(fill=gender), alpha=0.5) 
+
+art <- ggplot(speed_dating, aes(art)) +
+  geom_density(aes(fill=gender), alpha=0.5) 
+
+dining <- ggplot(speed_dating, aes(dining)) +
+  geom_density(aes(fill=gender), alpha=0.5) 
+
+reading <- ggplot(speed_dating, aes(reading)) +
+  geom_density(aes(fill=gender), alpha=0.5) 
+
+grid.arrange(
+  sports, movies, music,
+  yoga, shopping, reading,
+  gaming, art, dining,
+  ncol=3, nrow=3,
+  top = "Interests/Hobbies comparison for men and women"
+)
+
+```
+
+\begin{center}\includegraphics[width=25cm]{images/hobbies.png}\end{center}
+
+Looking at the various plots in the grid above we can observe the following:
+
+1. Men show a higher propensity towards **Sports** and **Yoga** although difference isn't as much as one would expect.
+2. Women surprisingly show more interest in **gaming** then men.
+3. Women have a higher propensity towards **arts**, **shopping** and **dining**.
+4. Activities like **movies**, **music**, and **reading** are liked almost equally by men and women.
+
+We can further look at the correlation between different hobbies:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+# hobbies correlation
+hobbies <- speed_dating[, 40:55]
+cormat<-signif(cor(hobbies),2)
+melted_cormat <- melt(cormat)
+ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile(color="white") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+    ggtitle("Correlation between different hobbies")
+```
+
+\begin{center}\includegraphics[width=20cm]{images/hobbies_cor.png}\end{center}
+
+In the above plot, the lighter color tiles represent a higher correlation. As such we can see that the results are quite obvious for this dataset. Museums and arts seem to have a very high correlation meaning that any person who likes arts also like museums. Similarly, concerts and music have a higher correlation. Observing the dark tiles, we can see that there is very low correlation between sports and arts/museums.
+
+Similar plots made separately for men and women show similar results.
+
+\newpage
+# Methodology
+
+In this section we will look at different methods for performing predictive analysis on the data.
+
+## Predicting Overall Match
+
+First task is to take all relevant information available for both participants involved in each particular "date" and fit a model for their match. Before doing this analysis, we need to remove certain features from the dataset. Features like **decision** and **decision_o** basically decide the final outcome, hence these cannot be used in this analysis. We will perform a predictive analysis of these two features in the subsequent sections.
+
+The first step is to split the dataset into three sets for **training**, **validation** and **testing**. Out of a total of **8378** rows in the dataset, we use **1500** for validation, another **1500** for testing and the rest are used for training.
+
+```{r, , fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+
+speed_dating_1 = speed_dating[,-c(64,65)]
+
+## Split the data into set1 (training set), set2 (validation set) and set3 (test set)
+train_indices = sample(1:8378,5378,replace=FALSE)
+set1 = speed_dating_1[train_indices,]
+validation_and_test_data = speed_dating_1[-train_indices,]
+validation_indices = sample(1:3000,1500,replace=FALSE)
+set2 = validation_and_test_data[validation_indices,]
+set3 = validation_and_test_data[-validation_indices,]
+nrow(speed_dating)
+set1.numeric = set1
+set1.numeric[,-64] = as.numeric(unlist(set1[,-64]))
+set2.numeric = set2
+set2.numeric[,-64] = as.numeric(unlist(set2[,-64]))
+set3.numeric = set3
+set3.numeric[,-64] = as.numeric(unlist(set3[,-64]))
+```
+
+Now, we try different methods on our dataset. We also introduce each method briefly for the sake of completion.
+
+### QDA
+
+QDA\cite{wiki} is not really that much different from LDA except that you assume that the covariance matrix can be different for each class and so, we will estimate the covariance matrix $\Sigma_k\Sigma_k$ separately for each class k, k =1, 2, ... , K.
+
+Quadratic discriminant function:
+
+$$\delta_k(x) = - \frac{1}{2}\log|\Sigma_k|
+    -\frac{1}{2}(x - \mu_k)^T\Sigma_k^{-1}(x - \mu_k)+\log\Pi_k
+$$
+
+This quadratic discriminant function is very much like the linear discriminant function except that because $\Sigma_k$, the covariance matrix, is not identical, you cannot throw away the quadratic terms. This discriminant function is a quadratic function and will contain second order terms.
+
+Classification rule:
+
+$$
+G(x) = argmax_k \delta_k(x)
+$$
+
+The classification rule is similar as well. You just find the class k which maximizes the quadratic discriminant function.
+
+The decision boundaries are quadratic equations in x.
+
+QDA, because it allows for more flexibility for the covariance matrix, tends to fit the data better than LDA, but then it has more parameters to estimate. The number of parameters increases significantly with QDA. Because, with QDA, you will have a separate covariance matrix for every class. If you have many classes and not so many sample points, this can be a problem.
+
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+##### QDA ######
+qda.fit <- qda(x=set1.numeric[,-64], grouping=set1.numeric$match)
+
+qda.pred.train <- predict(qda.fit, newdata=set1.numeric[,-64])$class
+qda.pred.valid <- predict(qda.fit, newdata=set2.numeric[,-64])$class
+qda.pred.test <- predict(qda.fit, newdata=set3.numeric[,-64])$class
+qmisclass.train <- mean(ifelse(qda.pred.train == set1.numeric$match, yes=0, no=1))
+qmisclass.valid <- mean(ifelse(qda.pred.valid == set2.numeric$match, yes=0, no=1))
+qmisclass.test <- mean(ifelse(qda.pred.test == set3.numeric$match, yes=0, no=1))
+```
+
+We ran the QDA model fit on the given data obtained the following results:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+print (paste("Training Error", qmisclass.train))
+print (paste("Validation Error", qmisclass.valid))
+print (paste("Test Error", qmisclass.test))
+
+print ("Confusion Matrix")
+# Test set confusion matrix
+table(set3.numeric$match, qda.pred.test, dnn=c("Obs","Pred"))
+
+```
+
+\begin{center}\includegraphics[width=12cm]{images/qda_cm.png}\end{center}
+
+### Logistic Regression
+
+Logistic Regression\cite{wiki} is a Machine Learning classification algorithm that is used to predict the probability of a categorical dependent variable. In logistic regression, the dependent variable is a binary variable that contains data coded as 1 (yes, success, etc.) or 0 (no, failure, etc.). In other words, the logistic regression model predicts P(Y=1) as a function of X.
+
+Logistic Regression is one of the most popular ways to fit models for categorical data, especially for binary response data in Data Modeling. It is the most important (and probably most used) member of a class of models called generalized linear models. Unlike linear regression, logistic regression can directly predict probabilities (values that are restricted to the (0,1) interval); furthermore, those probabilities are well-calibrated when compared to the probabilities predicted by some other classifiers, such as Naive Bayes. Logistic regression preserves the marginal probabilities of the training data. The coefficients of the model also provide some hint of the relative importance of each input variable.
+
+Logistic Regression is used when the dependent variable (target) is categorical. Consider a scenario where we need to classify whether an email is spam or not. If we use linear regression for this problem, there is a need for setting up a threshold based on which classification can be done. Say if the actual class is malignant, predicted continuous value 0.4 and the threshold value is 0.5, the data point will be classified as not malignant which can lead to serious consequences in real time.
+
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+####### Logistic Regression ##############
+rescale <- function(x1,x2){
+  for(col in 1:ncol(x1)){
+    a <- min(x2[,col])
+    b <- max(x2[,col])
+    x1[,col] <- (x1[,col]-a)/(b-a)
+  }
+  x1
+}
+
+set1.rescale <- data.frame(cbind(rescale(set1.numeric[,-64], set1.numeric[,-64]), class=set1.numeric$match))
+set2.rescale <- data.frame(cbind(rescale(set2.numeric[,-64], set1.numeric[,-64]), class=set2.numeric$match))
+set3.rescale <- data.frame(cbind(rescale(set3.numeric[,-64], set1.numeric[,-64]), class=set3.numeric$match))
+
+logit.cv <- cv.glmnet(x=as.matrix(set1.rescale[,1:63]), y=set1[,64], family="multinomial")
+
+#logit.cv
+#plot(logit.cv)
+
+lascv.pred.train <- predict(object=logit.cv, newx=as.matrix(set1.rescale[,1:63]), s=logit.cv$lambda.min, type="class")
+lascv.pred.valid <- predict(logit.cv, newx=as.matrix(set2.rescale[,1:63]), s=logit.cv$lambda.min, type="class")
+lascv.pred.test <- predict(logit.cv, newx=as.matrix(set3.rescale[,1:63]), s=logit.cv$lambda.min, type="class")
+lascvmisclass.train <- mean(ifelse(lascv.pred.train == set1$match, yes=0, no=1))
+lascvmisclass.valid <- mean(ifelse(lascv.pred.valid == set2$match, yes=0, no=1))
+lascvmisclass.test <- mean(ifelse(lascv.pred.test == set3$match, yes=0, no=1))
+```
+
+We ran logistic regression on the data set and here are the results:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+print (paste("Training Error", lascvmisclass.train))
+print (paste("Validation Error", lascvmisclass.valid))
+print (paste("Test Error", lascvmisclass.test))
+
+print ("Confusion Matrix")
+# Test set confusion matrix
+table(set3.numeric$match, lascv.pred.test, dnn=c("Obs","Pred"))
+
+```
+
+\begin{center}\includegraphics[width=12cm]{images/lr_cm.png}\end{center}
+
+### Naive Bayes
+
+Naive Bayes\cite{wiki} is a simple technique for constructing classifiers: models that assign class labels to problem instances, represented as vectors of feature values, where the class labels are drawn from some finite set. There is not a single algorithm for training such classifiers, but a family of algorithms based on a common principle: all naive Bayes classifiers assume that the value of a particular feature is independent of the value of any other feature, given the class variable. For example, a fruit may be considered to be an apple if it is red, round, and about 10 cm in diameter. A naive Bayes classifier considers each of these features to contribute independently to the probability that this fruit is an apple, regardless of any possible correlations between the color, roundness, and diameter features.
+
+For some types of probability models, naive Bayes classifiers can be trained very efficiently in a supervised learning setting. In many practical applications, parameter estimation for naive Bayes models uses the method of maximum likelihood; in other words, one can work with the naive Bayes model without accepting Bayesian probability or using any Bayesian methods.
+
+Despite their naive design and apparently oversimplified assumptions, naive Bayes classifiers have worked quite well in many complex real-world situations. In 2004, an analysis of the Bayesian classification problem showed that there are sound theoretical reasons for the apparently implausible efficacy of naive Bayes classifiers. Still, a comprehensive comparison with other classification algorithms in 2006 showed that Bayes classification is outperformed by other approaches, such as boosted trees or random forests.
+
+An advantage of naive Bayes is that it only requires a small number of training data to estimate the parameters necessary for classification.
+
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+################# Naive Bayes ########################
+pc <-  prcomp(x=set1.numeric[,-64], scale.=TRUE)
+
+xi.1 <- data.frame(pc$x,class = as.factor(set1$match))
+xi.2 <- data.frame(predict(pc, newdata=set2.numeric), class = as.factor(set2.numeric$match))
+xi.3 <- data.frame(predict(pc, newdata=set3.numeric), class = as.factor(set3.numeric$match))
+
+NB.pc <- NaiveBayes(x=xi.1[,-64], grouping=xi.1[,64], usekernel=FALSE)
+
+NBpc.pred.train <- predict(NB.pc, newdata=xi.1[,-64], type="class")
+NBpc.pred.valid <- predict(NB.pc, newdata=xi.2[,-64], type="class")
+NBpc.pred.test <- predict(NB.pc, newdata=xi.3[,-64], type="class")
+```
+
+We ran the Naive Bayesian mechanism on the data set and here are the results:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+# Error rates
+NBmisclass.train <- mean(ifelse(NBpc.pred.train$class == xi.1$class, yes=0, no=1))
+NBmisclass.valid <- mean(ifelse(NBpc.pred.valid$class == xi.2$class, yes=0, no=1))
+NBmisclass.test <- mean(ifelse(NBpc.pred.test$class == xi.3$class, yes=0, no=1))
+
+print (paste("Training Error", NBmisclass.train))
+print (paste("Validation Error", NBmisclass.valid))
+print (paste("Test Error", NBmisclass.test))
+```
+
+\begin{center}\includegraphics[width=12cm]{images/nb_cm.png}\end{center}
+
+### Random Forest
+
+A Random Forest\cite{wiki} consists of a collection or ensemble of simple tree predictors, each capable of producing a response when presented with a set of predictor values. For classification problems, this response takes the form of a class membership, which associates, or classifies, a set of independent predictor values with one of the categories present in the dependent variable. Alternatively, for regression problems, the tree response is an estimate of the dependent variable given the predictors. The Random Forest algorithm was developed by Breiman.
+
+A Random Forest consists of an arbitrary number of simple trees, which are used to determine the final outcome.  For classification problems, the ensemble of simple trees vote for the most popular class. In the regression problem, their responses are averaged to obtain an estimate of the dependent variable. Using tree ensembles can lead to significant improvement in prediction accuracy.
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+################ Random Forest  #####################
+rf.1 <- randomForest(data=set1.numeric, match~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+
+round(importance(rf.1),3) # Print out importance measures
+win.graph(h=7,w=12)
+```
+
+Using RandomForest method we get the following plot depicting the importance of different attributes in the model
+
+\begin{center}\includegraphics[width=15cm]{images/var_imp_1_rf.png}\end{center}
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+varImpPlot(rf.1) # Plot of importance measures; more interesting with more variables
+```
+
+After running the model on the dataset, we get the following results:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+# Predict results of classification. 
+pred.rf.1.train <- predict(rf.1, newdata=set1.numeric, type="response")
+pred.rf.1.val <- predict(rf.1, newdata=set2.numeric, type="response")
+pred.rf.1.test <- predict(rf.1, newdata=set3.numeric, type="response")
+
+misclass.train.4 <- mean(ifelse(pred.rf.1.train == set1.numeric$match, yes=0, no=1))
+misclass.val.4 <- mean(ifelse(pred.rf.1.val == set2.numeric$match, yes=0, no=1))
+misclass.test.4 <- mean(ifelse(pred.rf.1.test == set3.numeric$match, yes=0, no=1))
+
+print (paste("Training Error", misclass.train.4))
+print (paste("Validation Error", misclass.val.4))
+print (paste("Test Error", misclass.test.4))
+
+print ("Confusion Matrix")
+# Test set confusion matrix
+table(set3.numeric$match, pred.rf.1.test, dnn=c("Obs","Pred"))
+
+```
+
+
+\begin{center}\includegraphics[width=12cm]{images/rf_cm.png}\end{center}
+
+
+### SVM
+
+Support Vector Machine (SVM)\cite{wiki} is primarily a classier method that performs classification tasks by constructing hyperplanes in a multidimensional space that separates cases of different class labels. SVM supports both regression and classification tasks and can handle multiple continuous and categorical variables. For categorical variables a dummy variable is created with case values as either a 0 or 1. Thus, a categorical dependent variable consisting of three levels, say (A, B, C), is represented by a set of three dummy variables:
+
+A: {1 0 0}, B: {0 1 0}, C: {0 0 1}
+
+To construct an optimal hyperplane, SVM employs an iterative training algorithm, which is used to minimize an error function.
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+################ SVM  #####################
+
+#svm.tune <-  tune.svm(data=set1, match ~ ., kernel="radial", 
+#                      tunecontrol=tune.control(sampling="fix"), 
+#                      validation.x=set2[,1:63], validation.y=set2[,64], 
+#                      gamma = 10^(-2:2), cost = 10^(2:6))  ## gamma = 0.01 cost = 100 #performance = 0.16
+#summary(svm.tune) 
+#aav <- summary(svm.tune)$performances
+#aav[order(aav[,3]),]
+
+#x11(h=7, w=6, pointsize=12)
+#plot(svm.tune, type="contour", transform.x=log10, transform.y=log10)
+#x11(h=7, w=6, pointsize=12)
+#plot(svm.tune, type="perspective", transform.x=log10, transform.y=log10, theta=150)
+```
+
+In SVM, we did tune the model for various hyperparameters like **gamma** and **cost** and used the parameters that gave the best results during the cross validation tuning process. The tuned values are **gamma = 0.01** and **cost = 100**. 
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+svm.01.100 <- svm(data=set1, match ~ ., kernel="radial", gamma=.01, cost=100)
+#summary(svm.01.100)
+
+svm.pred.train <- predict(svm.01.100, newdata=set1, type="vector")
+svm.misclass.train <- mean(ifelse(svm.pred.train == set1$match, yes=0, no=1))
+
+svm.pred.val <- predict(svm.01.100, newdata=set2, type="vector")
+svm.misclass.val <- mean(ifelse(svm.pred.val == set2$match, yes=0, no=1))
+
+svm.pred.test <- predict(svm.01.100, newdata=set3, type="vector")
+svm.misclass.test <- mean(ifelse(svm.pred.test == set3$match, yes=0, no=1))
+```
+
+We ran SVM on the given data set and here are the results:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+print (paste("Training Error", svm.misclass.train))
+print (paste("Validation Error", svm.misclass.val))
+print (paste("Test Error", svm.misclass.test))
+
+print ("Confusion Matrix")
+# Test set confusion matrix
+table(set3.numeric$match, svm.pred.test, dnn=c("Obs","Pred"))
+
+```
+
+
+\begin{center}\includegraphics[width=12cm]{images/svm_cm.png}\end{center}
+
+### Neural Networks
+
+Neural networks\cite{wiki} have seen an explosion of interest over the last few years, and are being successfully applied across an extraordinary range of problem domains, in areas as diverse as finance, medicine, engineering, geology and physics. Indeed, anywhere that there are problems of prediction, classification or control, neural networks are being introduced. Neural networks are also intuitively appealing, based as they are on a crude low-level model of biological neural systems.
+
+Neural networks are very sophisticated modeling techniques capable of modeling extremely complex functions. In particular, neural networks are nonlinear (a term which is discussed in more detail later in this section). For many years linear modeling has been the commonly used technique in most modeling domains since linear models have well-known optimization strategies. Where the linear approximation was not valid (which was frequently the case) the models suffered accordingly. Neural networks also keep in check the curse of dimensionality problem that bedevils attempts to model nonlinear functions with large numbers of variables.
+
+Neural networks learn by example. The neural network user gathers representative data, and then invokes training algorithms to automatically learn the structure of the data. Although the user does need to have some heuristic knowledge of how to select and prepare data, how to select an appropriate neural network, and how to interpret the results, the level of user knowledge needed to successfully apply neural networks is much lower than would be the case using (for example) some more traditional nonlinear statistical methods.
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+rescale.set1 <- function(x1,x2){
+  minx <- apply(X=x1, MARGIN=2, FUN=min)
+  maxx <- apply(X=x1, MARGIN=2, FUN=max)
+  x3 <- matrix (nrow=nrow(x2), ncol=ncol(x2))
+  for(i in c(1:ncol(x2))){
+    x3[,i] <- (x2[,i] - minx[i])/(maxx[i] - minx[i])
+  }
+  x3
+}
+
+x.1.unscaled <- as.matrix(set1.numeric[,-64])
+x.1 <- rescale.set1(x.1.unscaled, x.1.unscaled)
+x.2.unscaled <- as.matrix(set2.numeric[,-64])
+x.2 <- rescale.set1(x.1.unscaled, x.2.unscaled)
+x.3.unscaled <- as.matrix(set3.numeric[,-64])
+x.3 <- rescale.set1(x.1.unscaled, x.3.unscaled)
+
+
+y.1 <- class.ind(set1[,64])
+y.2 <- class.ind(set2[,64])
+y.3 <- class.ind(set3[,64])
+
+nn.1.0 <- nnet(x=x.1, y=y.1, size=1, maxit=1000, softmax=TRUE)
+
+p1.nn.1.0 <-predict(nn.1.0, newdata=x.1, type="class")
+misclass1.1.0 <- mean(ifelse(p1.nn.1.0 == as.factor(set1.numeric$match), yes=0, no=1))
+# Val set error
+p2.nn.1.0 <-predict(nn.1.0, newdata=x.2, type="class")
+misclass2.1.0 <- mean(ifelse(p2.nn.1.0 == set2.numeric$match, yes=0, no=1))
+# Test set error
+p3.nn.1.0 <-predict(nn.1.0, newdata=x.3, type="class")
+misclass3.1.0 <- mean(ifelse(p3.nn.1.0 == as.factor(set3.numeric$match), yes=0, no=1))
+```
+
+We ran the neural net on the given data set and here are the results:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+print (paste("Training Error", misclass1.1.0))
+print (paste("Validation Error", misclass2.1.0))
+print (paste("Test Error", misclass3.1.0))
+
+print ("Confusion Matrix")
+# Test set confusion matrix
+table(set3.numeric$match, p3.nn.1.0, dnn=c("Obs","Pred"))
+
+```
+
+\begin{center}\includegraphics[width=12cm]{images/nn_cm.png}\end{center}
+
+### XGBoost
+
+Gradient boosting\cite{wiki} is a machine learning technique for regression and classification problems, which produces a prediction model in the form of an ensemble of weak prediction models, typically decision trees. It builds the model in a stage-wise fashion like other boosting methods do, and it generalizes them by allowing optimization of an arbitrary differentiable loss function. Gradient boosting involves three elements: a loss function to be optimized, a weak learner to make predictions and an additive model to add weak learners to minimize the loss function.
+
+The loss function used depends on the type of problem being solved. It must be differentiable, but many standard loss functions are supported and you can define your own. For example, regression may use a squared error and classification may use logarithmic loss. A benefit of the gradient boosting framework is that a new boosting algorithm does not have to be derived for each loss function that may want to be used, instead, it is a generic enough framework that any differentiable loss function can be used.
+
+Decision trees are used as the weak learner in gradient boosting. Specifically regression trees are used that output real values for splits and whose output can be added together, allowing subsequent models outputs to be added and “correct” the residuals in the predictions. Trees are constructed in a greedy manner, choosing the best split points based on purity scores like Gini or to minimize the loss. Initially, such as in the case of AdaBoost, very short decision trees were used that only had a single split, called a decision stump. Larger trees can be used generally with 4-to-8 levels. It is common to constrain the weak learners in specific ways, such as a maximum number of layers, nodes, splits or leaf nodes. This is to ensure that learners remain weak, but can still be constructed in a greedy manner.
+
+Trees are added one at a time, and existing trees in the model are not changed. A gradient descent procedure is used to minimize the loss when adding trees. Traditionally, gradient descent is used to minimize a set of parameters, such as the coefficients in a regression equation or weights in a neural network. After calculating error or loss, the weights are updated to minimize that error. Instead of parameters, we have weak learner sub-models or more specifically decision trees. After calculating the loss, to perform the gradient descent procedure, we must add a tree to the model that reduces the loss (i.e. follow the gradient). We do this by parameterizing the tree, then modify the parameters of the tree and move in the right direction by (reducing the residual loss. Generally this approach is called functional gradient descent or gradient descent with functions. The output for the new tree is then added to the output of the existing sequence of trees in an effort to correct or improve the final output of the model. A fixed number of trees are added or training stops once loss reaches an acceptable level or no longer improves on an external validation dataset.
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+################## xgboost ################
+xg <- xgboost(data=as.matrix(set1.numeric[,-64]), label=as.numeric(set1.numeric[,64])-1, 
+              max_depth=5, eta=.001, subsample=.8,
+              nrounds=1000, num_class=2, objective="multi:softprob")
+
+pred.xg.train <- predict(xg, newdata=as.matrix(set1.numeric[,-64]), reshape=TRUE)
+pred.xg.val <- predict(xg, newdata=as.matrix(set2.numeric[,-64]), reshape=TRUE)
+pred.xg.test <- predict(xg, newdata=as.matrix(set3.numeric[,-64]), reshape=TRUE)
+
+class.xg.train <- apply(pred.xg.train[,], 1, which.max)
+class.xg.val <- apply(pred.xg.val[,], 1, which.max)
+class.xg.test <- apply(pred.xg.test[,], 1, which.max)
+
+misclass.boost.xg.train <- mean(ifelse(class.xg.train == as.numeric(set1.numeric$match), yes=0, no=1))
+misclass.boost.xg.val <- mean(ifelse(class.xg.val == as.numeric(set2.numeric$match), yes=0, no=1))
+misclass.boost.xg.test <- mean(ifelse(class.xg.test == as.numeric(set3.numeric$match), yes=0, no=1))
+```
+
+Using the gradient boost method, we ran the variable importance on the data set. The following plot shows the importance of the different attributes as per the gradient boost method:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+
+xgb.importance(model=xg)
+xgb.plot.importance(xgb.importance(model=xg)[1:15,])
+```
+
+\begin{center}\includegraphics[width=12cm]{images/var_imp_1_xgboost.png}\end{center}
+
+After running the model fit on the data set, here are the results:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+print (paste("Training Error", misclass.boost.xg.train))
+print (paste("Validation Error", misclass.boost.xg.val))
+print (paste("Test Error", misclass.boost.xg.test))
+
+print ("Confusion Matrix")
+# Test set confusion matrix
+table(set3.numeric$match, class.xg.test, dnn=c("Obs","Pred"))
+
+```
+
+\begin{center}\includegraphics[width=12cm]{images/xg_cm.png}\end{center}
+
+### K Nearest Neighbours
+
+In pattern recognition, the k-nearest neighbors algorithm (k-NN)\cite{wiki} is a non-parametric method used for classification and regression.[1] In both cases, the input consists of the k closest training examples in the feature space. The output depends on whether k-NN is used for classification or regression.
+
+In k-NN classification, the output is a class membership. An object is classified by a plurality vote of its neighbors, with the object being assigned to the class most common among its k nearest neighbors (k is a positive integer, typically small). If k = 1, then the object is simply assigned to the class of that single nearest neighbor.
+
+In k-NN regression, the output is the property value for the object. This value is the average of the values of k nearest neighbors.
+k-NN is a type of instance-based learning, or lazy learning, where the function is only approximated locally and all computation is deferred until classification.
+
+Both for classification and regression, a useful technique can be to assign weights to the contributions of the neighbors, so that the nearer neighbors contribute more to the average than the more distant ones. For example, a common weighting scheme consists in giving each neighbor a weight of 1/d, where d is the distance to the neighbor.[2]
+
+The neighbors are taken from a set of objects for which the class (for k-NN classification) or the object property value (for k-NN regression) is known. This can be thought of as the training set for the algorithm, though no explicit training step is required.
+
+A peculiarity of the k-NN algorithm is that it is sensitive to the local structure of the data.
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+####################  Nearest Neighbour #########################
+scale.set1 <- function(x1,x2){
+  mean <- apply(X=x1, MARGIN=2, FUN=mean)
+  stdev <- apply(X=x1, MARGIN=2, FUN=sd)
+  scale(x=x2, center=mean, scale=stdev)
+}
+
+x.1.unscaled <- as.matrix(set1.numeric[,-64])
+x.1 <- scale.set1(x.1.unscaled,x.1.unscaled)
+x.2.unscaled <- as.matrix(set2.numeric[,-64])
+x.2 <- scale.set1(x.1.unscaled,x.2.unscaled)
+x.3.unscaled <- as.matrix(set3.numeric[,-64])
+x.3 <- scale.set1(x.1.unscaled,x.3.unscaled)
+```
+
+Using different values of k (number of neighbours) we plot the error rate:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+kmax <- 25
+k <- matrix(c(1:kmax), nrow=kmax)
+runknn <- function(x){
+  knnfit <- knn(train=x.1, test=x.2, cl=set1[,64], k=x)
+  mean(ifelse(knnfit == set2[,64], yes=0, no=1))
+}
+
+mis <- apply(X=k, MARGIN=1, FUN=runknn)
+mis.se <- sqrt(mis*(1-mis)/nrow(set2))
+
+plot(x=k, y=mis, type="b", ylim=c(.10,.22), ylab="Misclassification error") 
+for(ii in c(1:kmax)){
+  lines(x=c(k[ii],k[ii]), y=c(mis[ii]-mis.se[ii], mis[ii]+mis.se[ii]), col=colors()[220])
+}
+abline(h=min(mis + mis.se), lty="dotted")
+```
+
+
+\begin{center}\includegraphics[width=12cm]{images/tuning_knn_1.png}\end{center}
+
+As shown by the plot, **k=12** shows the lower error, so we will use that to fit the model. Here are the results after the model fit:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+#Trying the value of k with the lowest validation error on test data set.
+knnfit12.3 <- knn(train=x.1, test=x.3, cl=set1[,64], k=12)
+
+#table(knnfit12.3, set3[,64],  dnn=c("Predicted","Observed"))
+knn.misclass.train <- mean(ifelse(knnfit12.3 == set1[,64], yes=0, no=1))
+knn.misclass.val <- mean(ifelse(knnfit12.3 == set2[,64], yes=0, no=1))
+knn.misclass.test <- mean(ifelse(knnfit12.3 == set3[,64], yes=0, no=1))
+
+print (paste("Training Error", knn.misclass.train))
+print (paste("Validation Error", knn.misclass.val))
+print (paste("Test Error", knn.misclass.test))
+```
+
+\begin{center}\includegraphics[width=12cm]{images/knn_cm.png}\end{center}
+
+### Comparison of different model performances
+
+The performance of various models on the data sets are summarized below:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+models = c("QDA","Logistic Regression", "Naive Bayes","Random Forest","SVM","KNN", 
+           "Gradient Boosting","Neural Networks")
+validation_accuracy = c(qmisclass.valid,lascvmisclass.valid,
+                        NBmisclass.valid,misclass.val.4,svm.misclass.val,
+                        knn.misclass.val,
+                        misclass.boost.xg.val,
+                        misclass2.1.0)
+test_accuracy = c(qmisclass.test,lascvmisclass.test,NBmisclass.test,
+                  misclass.test.4,svm.misclass.test,
+                  knn.misclass.test,
+                  misclass.boost.xg.test,misclass3.1.0)
+
+comparison = data.frame("Models"=models,"Validation Accuracy"=validation_accuracy,"Test Accuracy"=test_accuracy)
+comparison
+```
+
+\begin{center}\includegraphics[width=12cm]{images/model_comp.png}\end{center}
+
+## Predicting Individual Decisions
+
+The second thing we want to achieve is that given all the attributes of a person and their potential partner, we can predict the individual's decision. This analysis is important as it will reflect how individuals make decisions based on various factors.
+
+The divide into training, validation and test sets remains the same for this task as well. But we need to remove attributes like individual decisions and overall match in order to perform this task.
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+
+##################################################################
+### Second job - Predict yes from primary person's attributes ####
+#################################################################
+
+# We need to remove the decisions as they determine if there was a match
+# We also remove all the scores that the partner gave to the primary person
+
+speed_dating_2 = speed_dating[,-c(66,65,57,11:22)]
+
+## Split the data into set1 (training set), set2 (validation set) and set3 (test set)
+train_indices = sample(1:8378,5378,replace=FALSE)
+set1 = speed_dating_2[train_indices,]
+validation_and_test_data = speed_dating_2[-train_indices,]
+validation_indices = sample(1:3000,1500,replace=FALSE)
+set2 = validation_and_test_data[validation_indices,]
+set3 = validation_and_test_data[-validation_indices,]
+
+set1.numeric = set1
+set1.numeric[,-51] = as.numeric(unlist(set1[,-51]))
+set2.numeric = set2
+set2.numeric[,-51] = as.numeric(unlist(set2[,-51]))
+set3.numeric = set3
+set3.numeric[,-51] = as.numeric(unlist(set3[,-51]))
+```
+
+We decided to use methods **Gradient Boosting** and **K nearest neighbours** as they performed pretty well in the previous tasks.
+
+### XGBoost
+
+After running XGBoost as done in the previous section but with appropriately prepared data set we get the following results:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+################# xgboost ##############################
+xg <- xgboost(data=as.matrix(set1.numeric[,-51]), label=as.numeric(set1.numeric[,51])-1, 
+              max_depth=5, eta=.001, subsample=.8,
+              nrounds=1000, num_class=2, objective="multi:softprob")
+
+pred.xg.train <- predict(xg, newdata=as.matrix(set1.numeric[,-51]), reshape=TRUE)
+pred.xg.val <- predict(xg, newdata=as.matrix(set2.numeric[,-51]), reshape=TRUE)
+pred.xg.test <- predict(xg, newdata=as.matrix(set3.numeric[,-51]), reshape=TRUE)
+
+class.xg.train <- apply(pred.xg.train[,], 1, which.max)
+class.xg.val <- apply(pred.xg.val[,], 1, which.max)
+class.xg.test <- apply(pred.xg.test[,], 1, which.max)
+
+misclass.boost.xg.train <- mean(ifelse(class.xg.train == as.numeric(set1.numeric$decision), yes=0, no=1))
+misclass.boost.xg.val <- mean(ifelse(class.xg.val == as.numeric(set2.numeric$decision), yes=0, no=1))
+misclass.boost.xg.test <- mean(ifelse(class.xg.test == as.numeric(set3.numeric$decision), yes=0, no=1))
+
+
+print (paste("Training Error", misclass.boost.xg.train))
+print (paste("Validation Error", misclass.boost.xg.val))
+print (paste("Test Error", misclass.boost.xg.test))
+```
+
+\begin{center}\includegraphics[width=12cm]{images/xg_2_cm.png}\end{center}
+
+### K Nearest Neighbours
+
+We apply KNN in the same manner as in the previous section. After cross validating with different values of k, we get the following plot showing the results of the cross validation:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+############################## knn ##############################
+scale.set1 <- function(x1,x2){
+  mean <- apply(X=x1, MARGIN=2, FUN=mean)
+  stdev <- apply(X=x1, MARGIN=2, FUN=sd)
+  scale(x=x2, center=mean, scale=stdev)
+}
+
+
+x.1.unscaled <- as.matrix(set1.numeric[,-51])
+x.1 <- scale.set1(x.1.unscaled,x.1.unscaled)
+x.2.unscaled <- as.matrix(set2.numeric[,-51])
+x.2 <- scale.set1(x.1.unscaled,x.2.unscaled)
+x.3.unscaled <- as.matrix(set3.numeric[,-51])
+x.3 <- scale.set1(x.1.unscaled,x.3.unscaled)
+
+kmax <- 25
+k <- matrix(c(1:kmax), nrow=kmax)
+runknn <- function(x){
+  knnfit <- knn(train=x.1, test=x.2, cl=set1[,51], k=x)
+  mean(ifelse(knnfit == set2[,51], yes=0, no=1))
+}
+
+mis <- apply(X=k, MARGIN=1, FUN=runknn)
+mis.se <- sqrt(mis*(1-mis)/nrow(set2))
+
+plot(x=k, y=mis, type="b", ylim=c(.20,.30), ylab="Missclassification error") 
+for(ii in c(1:kmax)){
+  lines(x=c(k[ii],k[ii]), y=c(mis[ii]-mis.se[ii], mis[ii]+mis.se[ii]), col=colors()[220])
+}
+abline(h=min(mis + mis.se), lty="dotted")
+```
+
+\begin{center}\includegraphics[width=12cm]{images/knn_cv.png}\end{center}
+
+As seen by the plot the value of k with least error is 3. We use this value and here are the results:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+#Trying the value of k with the lowest validation error on test data set.
+knnfit3.3 <- knn(train=x.1, test=x.3, cl=set1[,51], k=3)
+
+knn.misc.train <- mean(ifelse(knnfit3.3 == set1[,51], yes=0, no=1))
+knn.misc.val <- mean(ifelse(knnfit3.3 == set2[,51], yes=0, no=1))
+knn.misc.test <- mean(ifelse(knnfit3.3 == set3[,51], yes=0, no=1))
+
+print (paste("Training Error", knn.misc.train))
+print (paste("Validation Error", knn.misc.val))
+print (paste("Test Error", knn.misc.test))
+```
+
+\begin{center}\includegraphics[width=12cm]{images/knn_2_cm.png}\end{center}
+
+Surprisingly, the results for this task aren't as accurate as the previous task. **It is harder to predict individual decisions than it is to predict overall match.**
+
+## Gender Differences
+
+In this section, we look to explore some of the gender differences among the participants of the event. In particular, we look to find how do participants of different genders rate different qualities in their partners.
+
+For this analysis, we only keep six attributes related to ratings for qualities like attractiveness, sincerity, intelligence, etc. We also make use of the overall decision attribute to draw some conclusions. And finally we split the data into two sets, one for men and another for women.
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+
+speed_dating_3 = speed_dating[,c(1,34:39,64)]
+
+## Split the data into male and female observations
+male = speed_dating_3[speed_dating_3$gender=="male",-1]
+female = speed_dating_3[speed_dating_3$gender=="female",-1]
+```
+
+Here we use **RandomForest** method as it is good for indicating the importance of various attributes in a model and it also yielded good results in the previous sections.
+
+The results are as follows:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+
+rf.male <- randomForest(data=male, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.female <- randomForest(data=female, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+
+var.imp.male = rf.male$importance[,3]
+var.imp.female = rf.female$importance[,3]
+plot(var.imp.male, xaxt="n",type = "o",col = "red", xlab = "Attributes", ylab = "Mean Decrease in Accuracy", 
+     main = "Differences in predictive importance of various attributes", ylim=c(0,0.15), lwd=2)
+
+axis(1, at = c(1:6), labels=c("attractive","sincere","intelligence","funny","ambitious","shared interest")) 
+
+lines(var.imp.female, type = "o", col = "blue", lwd=2)
+legend("topright",c("Male", "Female"),lty=c(1,1),lwd=c(2,2),col=c("red","blue"))
+```
+
+As we can see from the plot, male participants give more importance to attractiveness than their female counterparts. While attractiveness and being funny are the two most desirable categories as per the predictive analysis, itelligence, sincerity and ambition are least desirable for both genders.
+
+## Ethnic Differences
+
+In this section, we look to explore some of the differences based on ethnic groups of the participants of the event. In particular, we look to find how do participants of different races rate different qualities in their partners.
+
+For this analysis, we only keep six attributes related to ratings for qualities like attractiveness, sincerity, intelligence, etc. We also make use of the overall decision attribute to draw some conclusions. And finally we split the date into different sets each for different ethnic groups.
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+###################################################
+####### Fourth job - Racial differences ###########
+###################################################
+
+speed_dating_4 = speed_dating[,c(5,34:39,64)]
+
+## Split the data into male and female observations
+apac = speed_dating_4[speed_dating_4$race=="'Asian/Pacific Islander/Asian-American'",-1]
+european = speed_dating_4[speed_dating_4$race=="European/Caucasian-American",-1]
+others = speed_dating_4[speed_dating_4$race=="Other",-1]
+latino = speed_dating_4[speed_dating_4$race=="'Latino/Hispanic American'",-1]
+african = speed_dating_4[speed_dating_4$race=="'Black/African American'",-1]
+```
+
+Here we use **RandomForest** method as it is good for indicating the importance of various attributes in a model and it also yielded good results in the previous sections.
+
+The results are as follows:
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+rf.apac <- randomForest(data=apac, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.european <- randomForest(data=european, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.others <- randomForest(data=others, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.latino <- randomForest(data=latino, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.african <- randomForest(data=african, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+
+var.imp.apac = rf.apac$importance[,3]
+var.imp.european = rf.european$importance[,3]
+var.imp.others = rf.others$importance[,3]
+var.imp.latino = rf.latino$importance[,3]
+var.imp.african = rf.african$importance[,3]
+plot(var.imp.apac, xaxt="n",type = "o",col = "red", xlab = "Attributes", ylab = "Mean Decrease in Accuracy", 
+     main = "Differences in predictive importance of various attributes", ylim=c(0,0.15), lwd=2)
+
+axis(1, at = c(1:6), labels=c("attractive","sincere","intelligence","funny","ambitious","shared interest")) 
+
+lines(var.imp.european, type = "o", col = "blue", lwd=2)
+lines(var.imp.latino, type = "o", col = "orange", lwd=2)
+lines(var.imp.african, type = "o", col = "green", lwd=2)
+lines(var.imp.others, type = "o", col = "brown", lwd=2)
+legend("topright",c("Asian/Pacific Islander/Asian-American", "European/Caucasian-American", "Latino/Hispanic American", "Black/African American", "Other"),lty=c(1,1,1,1,1),lwd=c(2,2,2,2,2),col=c("red","blue","orange","green","brown"))
+```
+
+\begin{center}\includegraphics[width=12cm]{images/racial_diff.png}\end{center}
+
+As expected, attractiveness leads the charts here as well. White and Black participants give more importance of attractiveness than other groups. Whereas Asian and Latino participants show more importance than other groups to their partner being funny. Shared interest is rated the highest by Asian and Black participants as well. Latin participants show the least inclination towards an ambitious partner out of all other ethnic groups.
+
+## Age Differences
+
+In this section, we look to explore some of the differences based on varying age groups of the participants in the event. In particular, we look to find how do participants of different ages rate different qualities in their partners.
+
+For this analysis, we only keep six attributes related to ratings for qualities like attractiveness, sincerity, intelligence, etc. We also make use of the overall decision attribute to draw some conclusions. And finally we split the date into different sets each for different age group.
+
+```{r, fig.align="center", out.width="85%", out.height="85%", echo=FALSE, eval=FALSE}
+###################################################
+####### Fifth job - Age differences ##############
+###################################################
+
+speed_dating_5 = speed_dating[,c(2,34:39,64)]
+
+age_18_22 = subset(speed_dating_5, age>=18 & age<=22)[,-1]
+age_23_27 = subset(speed_dating_5, age>= 23 & age<=27)[,-1]
+age_28_32 = subset(speed_dating_5, age>=28 & age<=32)[,-1]
+age_33_56 = subset(speed_dating_5, age>=33 & age<=56)[,-1]
+
+rf.18.22 = randomForest(data=age_18_22, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.23.27 = randomForest(data=age_23_27, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.28.32 = randomForest(data=age_28_32, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+rf.33.56 = randomForest(data=age_33_56, decision~., importance=TRUE, ntree=2500, keep.forest=TRUE)
+
+var.imp.18.22 = rf.18.22$importance[,3]
+var.imp.23.27 = rf.23.27$importance[,3]
+var.imp.28.32 = rf.28.32$importance[,3]
+var.imp.33.56 = rf.33.56$importance[,3]
+
+plot(var.imp.18.22, xaxt="n",type = "o",col = "red", xlab = "Attributes", ylab = "Mean Decrease in Accuracy", 
+     main = "Differences in predictive importance of various attributes", ylim=c(0,0.12), lwd=2)
+axis(1, at = c(1:6), labels=c("attractive","sincere","intelligence","funny","ambitious","shared interest")) 
+lines(var.imp.23.27, type = "o", col = "blue", lwd=2)
+lines(var.imp.28.32, type = "o", col = "orange", lwd=2)
+lines(var.imp.33.56, type = "o", col = "green", lwd=2)
+legend("topright",c("Age 18-22","Age 23-27","Age 28-32", "Age 33-56"),lty=c(1,1,1,1),lwd=c(2,2,2,2),col=c("red","blue","orange","green"))
+```
+
+\begin{center}\includegraphics[width=12cm]{images/age_diff.png}\end{center}
+
+Again, in case of different age groups as well, it is attractiveness that seems to be the most effective as per the predictive analysis. And this inclination is very close in all age groups, although participants of age less than 23 show slightly higher inclination. Younger participants (age 18) show less importance to their partner being funny while they care the most among all other age groups about their partner having the same interests as they do.
+
+\newpage
+# Conclusions
+
+Based on the questions we listed out in the beginning of this report, here are our conclusions:
+
+1. Given a set of attributes pertaining to potential partners, we are able to predict whether the two people are ready to date each other with XX% accuracy using ABC method.
+2. Based on a person’s own preferences, and the attributes of the potential partner, we are able to predict whether the person will be interested in the opposite person using XYZ methods. The accuracy of these predictions is lower.
+3. Predictive analysis reveals that the most desirable attributes for both Men and Women are attractiveness and funny. Men also give more importance to attractiveness than women. The importance of all other qualities for men and women is similar. 
+4. Looking at the preferences across participants from different racial groups, predictive analysis reveals that Black and White participants give more weightage to attractiveness than other groups. Latino and Asian participants tend to give more importance than other groups to their partner being funny.
+5. People in different age groups still show similar trends in terms of their preferred qualities as per the predictive analysis. Younger people tend to show more importance for attractiveness and shared interests, whereas people who are older tend to give more importance to than young people to their partner being funny.
+
+\newpage
+# Future Work
+
+In our conclusions, we state that we could more accurately predict a match than an individual decision. This is counter-intuitive and can be further studied to determine the reason for this. The dataset contains a lot of features and a lot more analysis can be performed. One such thing can be to see the differences in factors that influence partner selection for people from various fields of work. Another interesting future work may include finding inherent clusters among the people on the basis of various features available. 
+
+The best accuracy we could achieve for predicting a match was less than 90%. This may signify that the data quality can be much better and many more features could have been included in the dataset. Some of our suggestions are - importance of race for partner, religion, and interest ratings of partner, would the person want someone from their own field of work. Some other concerns we had with the data was the missing data. It is inevitable that we have missing data when collected from real world, but imputing the data generates some bias.
+
+\newpage
+# Contributions
+Puneeth's contributions include: Data Collection/Selection, preprocessing of data, cleaning data, predictive analysis, etc.
+
+Govind's contributions include: Data Collection/Selection, descriptive analysis, report writing, predictive analysis, etc.
+
+\newpage
+# Appendix
+
+## Literature
+
+Two research papers have been published which specifically analyses the speed dating dataset.
+
+The first paper\cite{paper1} titled "Gender Differences in Mate Selection: Evidence From a Speed Dating Experiment" studies the differences in various factors that influences men and women to choose a partner. They find that women put greater weight on the intelligence and the race of partner, while men respond more to physical attractiveness. Moreover, men do not value women’s intelligence or ambition when it exceeds their own. Also, they find that women exhibit a preference for men who grew up in affluent neighborhoods. Male selectivity is invariant to group size, while female selectivity is strongly increasing in group size.
+
+"Racial Preferences in Dating: Evidence from a Speed Dating Experiment" research paper\cite{paper2} studies the differences in various factors that influences people of various racial backgrounds to choose a partner. Their findings state that females exhibit stronger racial preferences than males. Furthermore, they observe stronger same race preferences for blacks and Asians than for Hispanics and whites. Accounting for self-reported shared interests considerably reduces the observed effect of racial preferences.
+
+\newpage
+
+\begin{thebibliography}{9}
+\bibitem{paper1} 
+Raymond Fisman J., Sheena Sethi Iyengar, Emir Kamenica, Itamar Simonson
+\textit{Gender Differences in Mate Selection: Evidence From a Speed Dating Experiment}. 
+Quarterly Journal of Economics, 2006.
+
+\bibitem{paper2} 
+Raymond Fisman J., Sheena Sethi Iyengar, Emir Kamenica, Itamar Simonson
+\textit{Racial Differences in Mate Selection: Evidence From a Speed Dating Experiment}. 
+The Review of Economic Studies Limited, 2008.
+
+\bibitem{openml} 
+OpenML: SpeedDating
+\\\texttt{https://www.openml.org/d/40536}
+
+\bibitem{wiki} 
+WikiPedia
+\\\texttt{https://en.wikipedia.org/wiki/}
+\end{thebibliography}
+
