@@ -1,5 +1,5 @@
 # Speed Dating
-Final project for STAT 845 - Classification at University of Waterloo
+Final project for STAT 841 - Classification at University of Waterloo
 
 ## Steps to run R code
 
